@@ -58,6 +58,19 @@ public class Writer {
         }
     }
 
+    // save wifi data
+    public void appendWifiData(String BSSID, Integer RSSI, String cell) {
+        try{
+            date = new Date();
+            long delta = date.getTime() - startTime.getTime();
+
+            fOutStream.write((delta + " " + cell.toString() + " " + BSSID + " " + RSSI + "\n").getBytes());
+            fOutStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Can be used to write everything in string form to a file.
      * @param msg
@@ -71,11 +84,17 @@ public class Writer {
         }
     }
 
+    // clear data
     public boolean clearData() {
-        if(file.exists()) {
-            file.delete();
-            return true;
-        }
-        return false;
+       try {
+           if(file.exists()) {
+               FileOutputStream writer = new FileOutputStream(file);
+               writer.write("".getBytes());
+               return true;
+           }
+       } catch (IOException e) {
+           e.printStackTrace();
+       }
+       return false;
     }
 }

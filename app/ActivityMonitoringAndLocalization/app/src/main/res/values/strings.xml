@@ -14,12 +14,26 @@
     <string name="btn_test_acc">Test Activity</string>
     <string name="lbl_none">NONE</string>
     <string name="lbl_wifi_rssi">WIFI RSSI</string>
-    <string name="btn_scan_and_sample_wifi_info">Scan and Sample WiFi Info</string>
+    <string name="btn_scan_and_sample_wifi_info">Scan WiFi</string>
+    <string name="btn_scan_and_sample_wifi_info_scan">Scanning WiFi</string>
     <string name="btn_test_localization">Test Localization</string>
     <string name="lbl_location">Location:</string>
 
+    <!-- Localization -->
+    <string name="cell_1">C0</string>
+    <string name="cell_2">C1</string>
+    <string name="cell_3">C2</string>
+    <string name="cell_4">C3</string>
+    <string name="cell_5">C4</string>
+    <string name="cell_6">C5</string>
+    <string name="cell_7">C6</string>
+    <string name="cell_8">C7</string>
+    <string name="cell_9">C8</string>
+    <string name="cell_10">C9</string>
+
     <!-- File storage locations-->
     <string name="accelerometer_data_file">accelerometerData.txt</string>
+    <string name="wifi_data_file">wifiData.txt</string>
     <string name="activity_file_feature_sd">activity_mon_sd.txt</string>
     <string name="activity_file_feature_fft">activity_mon_fft.txt</string>
     <string name="state">State:</string>
