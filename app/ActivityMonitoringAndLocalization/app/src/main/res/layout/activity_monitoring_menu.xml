@@ -100,14 +100,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/btn_standing"
-            android:id="@+id/button"
+            android:id="@+id/btnStanding"
             android:layout_weight="0.5" />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/btn_walking"
-            android:id="@+id/button2"
+            android:id="@+id/btnWalking"
             android:layout_weight="0.5" />
     </LinearLayout>
 
@@ -124,7 +124,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:layout_weight="0.4"
+            android:layout_weight="0.6"
             android:text="State:"
             android:id="@+id/lblState"
             android:layout_gravity="left|center_vertical" />
@@ -133,17 +133,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:layout_weight="0.6"
             android:text="@string/lbl_none"
             android:id="@+id/txtState"
-            android:layout_gravity="center_vertical|right" />
+            android:layout_gravity="center_vertical" />
     </LinearLayout>
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/btn_test_acc"
-        android:id="@+id/button4"
+        android:id="@+id/btnTestActivity"
         android:layout_weight="0.2" />/>
 
 </LinearLayout>
