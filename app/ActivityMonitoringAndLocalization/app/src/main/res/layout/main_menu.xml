@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1"
+    android:id="@+id/lytMainMenu">
+
+    tools:context="nl.tudelft.xflash.activitymonitoringandlocalization.MainActivity">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/menu_header"
+        android:id="@+id/lblHeader"
+        android:textStyle="bold"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:gravity="center_vertical|center_horizontal"
+        android:layout_weight="0.2" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_menu_activity"
+        android:id="@+id/btnActivity"
+        android:clickable="true"
+        android:layout_weight="0.3"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="0.2dp"
+        android:onClick="startActivityMonitoring" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_menu_localization"
+        android:id="@+id/btnLocalization"
+        android:clickable="true"
+        android:onClick="startLocalization"
+        android:layout_weight="0.3"
+        android:layout_gravity="center_horizontal" />
+
+</LinearLayout>
