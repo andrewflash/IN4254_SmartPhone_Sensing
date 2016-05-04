@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">ActivityMonitoringAndLocalization</string>
+    <string name="menu_header">IN4254 - Smartphone Sensing</string>
+    <string name="btn_menu_activity">Activity Monitoring</string>
+    <string name="btn_menu_localization">Localization</string>
+    <string name="btn_walking">Walking</string>
+    <string name="btn_standing">Standing</string>
+    <string name="header_activity_monitoring">Activity Monitoring - Accelerometer</string>
+    <string name="lbl_x_axis">X-Axis</string>
+    <string name="lbl_default">0.0</string>
+    <string name="lbl_y_axis">Y-Axis</string>
+    <string name="btn_test_acc">Test Activity</string>
+    <string name="lbl_none">NONE</string>
+    <string name="lbl_wifi_rssi">WIFI RSSI</string>
+</resources>
