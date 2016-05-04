@@ -1,4 +1,4 @@
-package nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor;
+package nl.tudelft.xflash.activitymonitoringandlocalization;
 
 import android.content.Context;
 import android.content.IntentFilter;
@@ -19,8 +19,8 @@ import java.util.Observer;
 import nl.tudelft.xflash.activitymonitoringandlocalization.R;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.WiFi;
 
-public class Localization extends AppCompatActivity implements Observer {
-
+public class LocalizationActivity extends AppCompatActivity /*implements Observer*/ {
+/*
     private int WINDOW_SIZE;            // set window size for Wifi data
     private final int SCAN_INTERVAL = 5000;
 
@@ -124,5 +124,5 @@ public class Localization extends AppCompatActivity implements Observer {
         }
 
         txtLocalTime.setText(System.currentTimeMillis() + " ms");
-    }
+    } */
 }
