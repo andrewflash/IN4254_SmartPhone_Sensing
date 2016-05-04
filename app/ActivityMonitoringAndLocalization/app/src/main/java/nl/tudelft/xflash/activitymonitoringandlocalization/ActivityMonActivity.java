@@ -19,7 +19,6 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Obser
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Database.Writer;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.Accelerometer;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.AbstractSensor;
 
 public class ActivityMonActivity extends AppCompatActivity implements ObserverSensor {
 
@@ -137,7 +136,6 @@ public class ActivityMonActivity extends AppCompatActivity implements ObserverSe
                 Context context = getApplicationContext();
                 if (writeAccel.clearData()) {
                     msg = "Data has been cleared";
-
                 } else {
                     msg = "Data could not be cleared";
                 }

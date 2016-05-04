@@ -22,17 +22,124 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:id="@+id/txtLocalTime" />
 
-    <TableLayout
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:id="@+id/scrollView"
+        android:scrollbars="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/lstWifi" />
+
+    </ScrollView>
+
+    <!--<TableLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:id="@+id/tblWifiData"></TableLayout>
+        android:padding="20dp"
+        android:id="@+id/tblWifiData"></TableLayout>-->
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:text="@string/cell_1"
+            android:id="@+id/btnCell1" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:text="@string/cell_2"
+            android:id="@+id/btnCell2" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:text="@string/cell_3"
+            android:id="@+id/btnCell3" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:text="@string/cell_4"
+            android:id="@+id/btnCell4" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:text="@string/cell_5"
+            android:id="@+id/btnCell5" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+       >
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:text="@string/cell_6"
+            android:id="@+id/btnCell6" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:text="@string/cell_7"
+            android:id="@+id/btnCell7" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:text="@string/cell_8"
+            android:id="@+id/btnCell8" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:text="@string/cell_9"
+            android:id="@+id/btnCell9" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:text="@string/cell_10"
+            android:id="@+id/btnCell10" />
+
+
+    </LinearLayout>
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/btn_scan_and_sample_wifi_info"
         android:id="@+id/btnScan" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/clear_data"
+        android:id="@+id/btnClearData" />
 
     <LinearLayout
         android:orientation="horizontal"
