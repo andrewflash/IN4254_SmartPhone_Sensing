@@ -111,6 +111,12 @@
             android:layout_weight="0.5" />
     </LinearLayout>
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/clear_data"
+        android:id="@+id/btnClearData" />
+
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
@@ -121,11 +127,11 @@
         android:weightSum="1">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:layout_weight="0.6"
-            android:text="State:"
+            android:text="@string/state"
             android:id="@+id/lblState"
             android:layout_gravity="left|center_vertical" />
 

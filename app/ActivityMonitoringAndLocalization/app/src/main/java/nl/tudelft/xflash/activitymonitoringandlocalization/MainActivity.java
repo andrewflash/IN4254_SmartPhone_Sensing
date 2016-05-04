@@ -26,12 +26,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startActivityMonitoring(View v) {
-        Intent startActivityMon = new Intent(this, ActivityMonitoring.class);
+        Intent startActivityMon = new Intent(this, ActivityMonActivity.class);
         startActivity(startActivityMon);
     }
 
     public void startLocalization(View v) {
-        Intent startLocal = new Intent(this, Localization.class);
+        Intent startLocal = new Intent(this, LocalizationActivity.class);
         startActivity(startLocal);
     }
 

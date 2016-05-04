@@ -6,7 +6,7 @@ import android.hardware.SensorManager;
 
 import java.util.ArrayList;
 
-import nl.tudelft.xflash.activitymonitoringandlocalization.Monitoring.ObserverSensor;
+import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ObserverSensor;
 
 /**
  * Created by xflash on 4-5-16.

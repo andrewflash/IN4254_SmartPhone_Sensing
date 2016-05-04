@@ -17,4 +17,11 @@
     <string name="btn_scan_and_sample_wifi_info">Scan and Sample WiFi Info</string>
     <string name="btn_test_localization">Test Localization</string>
     <string name="lbl_location">Location:</string>
+
+    <!-- File storage locations-->
+    <string name="accelerometer_data_file">accelerometerData.txt</string>
+    <string name="activity_file_feature_sd">activity_mon_sd.txt</string>
+    <string name="activity_file_feature_fft">activity_mon_fft.txt</string>
+    <string name="state">State:</string>
+    <string name="clear_data">Clear Data</string>
 </resources>

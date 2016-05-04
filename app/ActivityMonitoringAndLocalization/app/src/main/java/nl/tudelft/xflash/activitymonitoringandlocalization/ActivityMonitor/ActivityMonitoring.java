@@ -1,116 +1,113 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor;
 
-import android.hardware.SensorManager;
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.view.View;
-import android.widget.Button;
+import android.content.Context;
+import android.content.res.Resources;
 
 import java.util.ArrayList;
-import java.util.concurrent.Executors;
 
-import nl.tudelft.xflash.activitymonitoringandlocalization.Database.ActivityList;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Database.DatabaseAPI;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.FeatureExtractor;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.FeatureExtractorSD;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.FeatureSet;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.KNN;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.LabeledFeatureSet;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Database.AbstractReader;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Database.Reader;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Database.ReaderTest;
 import nl.tudelft.xflash.activitymonitoringandlocalization.R;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.Accelerometer;
 
-public class ActivityMonitoring extends AppCompatActivity {
+/**
+ * Created by xflash on 4-5-16.
+ */
+public class ActivityMonitoring {
+    // This instance keeps track of the activities performed
+    ActivityType activityList;
 
-    private SensorManager sensorManager;
-    private Accelerometer accelerometer;
+    // Readers
+    private AbstractReader SDReader;
+    //    private AbstractReader MagReader;
+//    private AbstractReader ACReader;
+    private AbstractReader FFTReader;
 
-    private Button btnStartStanding, btnStartWalking, btnTestActivity;
+    // Initialise the Feature type!
+    ArrayList<FeatureExtractor> extractor;
 
-    private boolean flagWalking;
-    private boolean flagStanding;
+    // k-Nearest Neighbors
+    private KNN knn;
+    private final int K = 5;
 
-    private DatabaseAPI dbAPI;
-    private ActivityList acType;
+//    //Try to estimate speed of walking
+//    private float speed;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_monitoring_menu);
+    public ActivityMonitoring(Context ctx) {
 
-        btnStartStanding = (Button) findViewById(R.id.btnStanding);
-        btnStartWalking = (Button) findViewById(R.id.btnWalking);
-        btnTestActivity = (Button) findViewById(R.id.btnTestActivity);
+        Resources res = ctx.getResources();
 
-        flagStanding = false;
-        flagWalking = false;
+        // initialise the readers to train kNN
+        SDReader = new Reader(ctx, res.getString(R.string.activity_file_feature_sd));
+        //SDReader = new ReaderTest(ctx, R.raw.stdfeature);
+//        MagReader = new ReaderTest(ctx, R.raw.maxfeature);
+//        ACReader = new ReaderTest(ctx, R.raw.acfeature);
+        FFTReader = new Reader(ctx, res.getString(R.string.activity_file_feature_fft));
+        //FFTReader = new ReaderTest(ctx, R.raw.fftfeature);
 
-        //open db-API
-        dbAPI = new DatabaseAPI(getApplicationContext());
+        // Choose which features you want
+        extractor = new ArrayList<>();
+        extractor.add(new FeatureExtractorSD());
+        //extractor.add(new FeatureExtractorMag());
+//        extractor.add(new FeatureExtractorAC());
+//        extractor.add(new FeatureExtractorFFT());
 
-        //setup Accelerometer and buttons
-        initAccelerometerAndButtons();
+        activityList = ActivityType.getInstance();
+
+        ArrayList<Float> SDList = new ArrayList<>();
+//        ArrayList<Float> MagList = new ArrayList<>();
+//        ArrayList<Float> ACList = new ArrayList<>();
+        ArrayList<Float> FFTList = new ArrayList<>();
+        ArrayList<Type> labelsList = new ArrayList<>();
+
+        // Get all data from the trainingData file in resources
+        SDReader.readData();
+//        MagReader.readData();
+//        ACReader.readData();
+        FFTReader.readData();
+        SDList = SDReader.getAllX();
+//         MagList = MagReader.getAllX();
+//        ACList = ACReader.getAllX();
+        FFTList = FFTReader.getAllX();
+        labelsList = SDReader.getAllStates();
+
+
+        ArrayList<LabeledFeatureSet> train = new ArrayList<>();
+        for (int i = 0; i < labelsList.size(); i++) {
+            FeatureSet f = new FeatureSet();
+            f.addFeature(SDList.get(i));
+//            f.addFeature(MagList.get(i));
+//            f.addFeature(ACList.get(i));
+            f.addFeature(FFTList.get(i));
+            train.add(new LabeledFeatureSet(f, labelsList.get(i)));
+        }
+        knn = new KNN(K, train);
     }
 
-
-    @Override
-    protected void onResume() {
-        super.onResume();
+    /**
+     * Return the current Activity that the user is doing.
+     *
+     * @return activity: Queueing, Walking, or None (to be determined activity)
+     */
+    public Type getActivity() {
+        if (activityList.size() == 0) {
+            return Type.NONE;
+        }
+        return activityList.getType(activityList.size() - 1);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    private void initAccelerometerAndButtons(){
-        sensorManager =(SensorManager)getSystemService(SENSOR_SERVICE);
-
-        // Initialise the Activity Monitoring
-        am = new ActivityMonitoring(this);
-
-        executor = Executors.newSingleThreadExecutor();
-
-        // Start accelerometer and attacht this Activity as Observer
-        accelerometer = new Accelerometer(sensorManager);
-        accelerometer.attach(this);
-
-        // walking
-        btnStartWalking.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                if(!flagWalking) {
-                    acType = ActivityList.WALKING;
-                    btnStartWalking.setText(R.string.btn_walking_stop);
-                    accelerometer.onActivityTypeChange(acType);
-                    accelerometer.startCollectingActivityData();
-                    flagWalking = true;
-                } else {
-                    btnStartWalking.setText(R.string.btn_walking);
-                    accelerometer.stopCollectingActivityData();
-                    dbAPI.exportTableAccel();
-                    flagWalking = false;
-                }
-            }
-        });
-
-        // standing
-        btnStartStanding.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                btnStartStanding.setEnabled(false);
-                btnStartStanding.setClickable(false);
-            }
-        });
-
-        btnTestActivity.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-
-            }
-        });
-
-        accelX = new ArrayList<>(WINDOW_SIZE_ACC);
-        accelY = new ArrayList<>(WINDOW_SIZE_ACC);
-        accelZ = new ArrayList<>(WINDOW_SIZE_ACC);
+    public void update(ArrayList<Float> x, ArrayList<Float> y, ArrayList<Float> z) {
+        // Extract features and classify them
+        FeatureSet fs = new FeatureSet();
+        for (FeatureExtractor ext : extractor) {
+            fs.addFeature(ext.extractFeatures(x, y, z));
+        }
+        Type label = knn.classify(fs);
+        activityList.addType(label);
     }
 }
