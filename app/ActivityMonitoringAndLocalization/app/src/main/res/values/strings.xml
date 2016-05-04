@@ -3,8 +3,10 @@
     <string name="menu_header">IN4254 - Smartphone Sensing</string>
     <string name="btn_menu_activity">Activity Monitoring</string>
     <string name="btn_menu_localization">Localization</string>
-    <string name="btn_walking">Walking</string>
-    <string name="btn_standing">Standing</string>
+    <string name="btn_walking">Start Walking</string>
+    <string name="btn_standing">Start Standing</string>
+    <string name="btn_walking_stop">Stop Walking</string>
+    <string name="btn_standing_stop">Stop Standing</string>
     <string name="header_activity_monitoring">Activity Monitoring - Accelerometer</string>
     <string name="lbl_x_axis">X-Axis</string>
     <string name="lbl_default">0.0</string>
@@ -12,4 +14,7 @@
     <string name="btn_test_acc">Test Activity</string>
     <string name="lbl_none">NONE</string>
     <string name="lbl_wifi_rssi">WIFI RSSI</string>
+    <string name="btn_scan_and_sample_wifi_info">Scan and Sample WiFi Info</string>
+    <string name="btn_test_localization">Test Localization</string>
+    <string name="lbl_location">Location:</string>
 </resources>

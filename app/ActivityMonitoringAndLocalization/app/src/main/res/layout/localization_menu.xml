@@ -6,18 +6,61 @@
     android:background="#ffffff"
     android:gravity="center"
     android:orientation="vertical"
-    android:paddingTop="20dp" >
+    android:paddingTop="5dp">
 
     <TextView
-        android:id="@+id/titleRSSI"
         android:layout_width="wrap_content"
-        android:layout_height="30dp"
-        android:layout_gravity="center"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/lbl_wifi_rssi"
-        android:textSize="20dp" />
+        android:id="@+id/titleRSSI"
+        android:layout_gravity="center_horizontal" />
 
     <TextView
-        android:id="@+id/txtRSSI"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:id="@+id/txtLocalTime" />
+
+    <TableLayout
         android:layout_width="match_parent"
-        android:layout_height="150dp" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:id="@+id/tblWifiData"></TableLayout>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_scan_and_sample_wifi_info"
+        android:id="@+id/btnScan" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/lbl_location"
+            android:id="@+id/lblLocation"
+            android:layout_weight="0.5" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/lbl_none"
+            android:id="@+id/txtLocation" />
+    </LinearLayout>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_test_localization"
+        android:id="@+id/btnTestLocal"
+        android:layout_gravity="center_horizontal" />
+
 </LinearLayout>
