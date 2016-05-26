@@ -34,7 +34,6 @@ public abstract class AbstractReader {
         return false;
     }
 
-
     public void readData(){
         String str = "";
         String[] split;
