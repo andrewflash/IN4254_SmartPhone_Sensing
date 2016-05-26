@@ -1,16 +1,11 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.Classification;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.res.Resources;
-import android.os.AsyncTask;
-
 import java.util.List;
 
 import nl.tudelft.xflash.activitymonitoringandlocalization.Database.AcceleroDBHandler;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Database.AcceleroData;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Misc.Statistics;
-import nl.tudelft.xflash.activitymonitoringandlocalization.R;
 
 /**
  * Created by tritronik on 5/25/2016.
