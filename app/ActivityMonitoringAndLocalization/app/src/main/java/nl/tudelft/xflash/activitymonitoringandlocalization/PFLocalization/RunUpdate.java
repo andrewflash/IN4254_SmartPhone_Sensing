@@ -1,5 +1,6 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization;
 
+import android.graphics.Color;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -29,7 +30,6 @@ public class RunUpdate implements Runnable {
 
     private float dT;
 
-
     public RunUpdate(ArrayList<Float> accelX, ArrayList<Float> accelY, ArrayList<Float> accelZ,
                        ArrayList<Float> orienX, ArrayList<Float> orienY, ArrayList<Float> orienZ,
                        ActivityMonitoring acMon, LocalizationMonitor locMon,
@@ -55,12 +55,21 @@ public class RunUpdate implements Runnable {
         this.activityMonitoring.update(accelX, accelY, accelZ);
 
         if (this.localizationMonitor.update(orienX,orienY,orienZ,dT)) {
+
             // Check for convergence and change the color of particles
-//            Location convergedLoc = localizationMonitor.hasConverged();
-//            if(convergedLoc != null){
-//                localizationView.setColor(Color.GREEN);
-//                walkedPath.setPath(convergedLoc);
-//            };
+            final Location convergedLoc = localizationMonitor.particleConverged();
+            if(convergedLoc != null){
+                localizationMap.setColor(Color.BLUE);
+                final Particle convergeLocation = localizationMonitor.forceConverge();
+                this.localizationMap.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        localizationMap.setConvLocation(convergeLocation);
+                    }
+                });
+
+                //walkedPath.setPath(convergedLoc);
+            };
 
             // Set values like particles and the direction
             if(activityMonitoring.getActivity() == Type.WALKING){
@@ -68,7 +77,6 @@ public class RunUpdate implements Runnable {
             }
 
             compassGUI.setAngle(localizationMonitor.getAngle());
-            Log.d(getClass().getSimpleName(),"angle:" + localizationMonitor.getAngle());
 
             this.compassGUI.post(new Runnable() {
                 public void run() {
@@ -81,7 +89,6 @@ public class RunUpdate implements Runnable {
                     localizationMap.invalidate();
                 }
             });
-
 
         }
     }

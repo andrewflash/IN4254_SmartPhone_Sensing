@@ -5,6 +5,8 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Random;
 
+import nl.tudelft.xflash.activitymonitoringandlocalization.Misc.ArrayOperations;
+
 /**
  * Created by xflash on 29-5-16.
  */
@@ -83,15 +85,16 @@ public class ParticleFilter {
                 dy.add(mov[1]);
             }
         }
+
 //        WalkedPath walkedPath = WalkedPath.getInstance();
 
         // If 90% of particles have died than don't update the particleList
-//        if(collisionParticles.size() > cloneParticles.size() * 0.9f){
-//            // New movement so update the walkedPath.
-//            walkedPath.setDx(0f);
-//            walkedPath.setDy(0f);
-//            return ;
-//        }
+        if(collisionParticles.size() > dupParticles.size() * 0.9f){
+            // New movement so update the walkedPath.
+            //walkedPath.setDx(0f);
+            //walkedPath.setDy(0f);
+            return ;
+        }
 
         // New movement so update the walkedPath.
 //        walkedPath.setDx(ArrayOperations.mean(this.dx));
@@ -126,10 +129,11 @@ public class ParticleFilter {
             particles.add(new Particle(particleTemp.get(index).getPreviousLocation().getX(),
                     particleTemp.get(index).getPreviousLocation().getY()));
         }
+
     }
 
     // Initial Belief PF
-//    public void initialBelief(ArrayList<ArrayList<Integer>> rssiData){
+    public void initialBelief(ArrayList<ArrayList<Integer>> rssiData){
 //        ArrayList<Float> walkedPathX = WalkedPath.getInstance().getPathX();
 //        ArrayList<Float> walkedPathY = WalkedPath.getInstance().getPathY();
 //        //Log.i("RSSI TEST", "pathsize " + walkedPathX.size() + " rssiSize" + rssiData.size());
@@ -161,15 +165,71 @@ public class ParticleFilter {
 //        particles.clear();
 //
 //        int i = 0;
-//        float sigma = 3f;
+//        float sigma = 3f;   // stdev for generating particle
 //
-//        while(i < N_INIT) {
+//        while(i < N_PARTICLES) {
 //            Particle p = new Particle(x0 + (float) rand.nextGaussian() * sigma, y0 + (float) rand.nextGaussian() * sigma);
 //            // Check if the particle is inside floor plan.
-//            if (floorPlan.particleInside(p)) {
+//            if (floorLayout.isParticleInside(p)) {
 //                particles.add(p);
 //                i++;
 //            }
 //        }
-//    }
+    }
+
+    // Return converged particle location, approximate using average and stdev
+    public Location converged(float r){
+        float xavg = 0f;
+        float yavg = 0f;
+        float xstdev = 0f;
+        float ystdev = 0f;
+        for (Particle p : particles){
+            xavg += p.getCurrentLocation().getX()/particles.size();
+            yavg += p.getCurrentLocation().getY()/particles.size();
+        }
+        for (Particle p : particles){
+            xstdev += (p.getCurrentLocation().getX()-xavg)*(p.getCurrentLocation().getX()-xavg);
+            ystdev += (p.getCurrentLocation().getY()-xavg)*(p.getCurrentLocation().getY()-xavg);
+        }
+
+        // Normalize
+        xstdev = xstdev/particles.size();
+        xstdev = (float)Math.sqrt(xstdev);
+        ystdev = ystdev/particles.size();
+        ystdev = (float)Math.sqrt(ystdev);
+
+        if (xstdev < r && ystdev < r){
+            return new Location(xavg,yavg);
+        }
+        return null;
+    }
+
+    // Best particle, converged
+    public Particle bestParticle(){
+        int[] count = new int[particles.size()];
+
+        for (int i = 0; i < particles.size(); i++) {
+            count[i] = 0;
+        }
+
+        ArrayList<Particle> bestParticleList = new ArrayList<>();
+        for(Particle p : particles){
+            bestParticleList.add(new Particle(p.getCurrentLocation(), p.getPreviousLocation()));
+        }
+
+        for (int i = 0; i < bestParticleList.size(); i++) {
+            for (int j = 0; j < bestParticleList.size(); j++) {
+                if (bestParticleList.get(i).distance(bestParticleList.get(j)) < 2f){
+                    count[i]++;
+                }
+            }
+        }
+
+        bestParticleList.clear();
+
+        //scorePercentate = (count[ArrayOperations.indexFirstMaximumFromInt(0,count)]*100)/(float)N_INIT;
+        //Log.i("BP test","score :"+ scorePercentate);
+        return particles.get(ArrayOperations.indexFirstMaximumFromInt(0,count));
+    }
+
 }

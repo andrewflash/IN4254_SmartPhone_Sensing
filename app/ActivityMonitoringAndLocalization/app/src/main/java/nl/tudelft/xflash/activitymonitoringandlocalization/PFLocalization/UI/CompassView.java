@@ -30,7 +30,7 @@ public class CompassView {
 
         compassPaint = new Paint();
         compassPaint.setStyle(Paint.Style.STROKE);
-        compassPaint.setColor(Color.BLUE);
+        compassPaint.setColor(Color.RED);
         compassPaint.setStrokeWidth(20);
     }
 
@@ -44,8 +44,7 @@ public class CompassView {
     }
 
     public void setAngle(float angle){
-        float angleDegree = (float)Math.toDegrees(angle);
-        compassDir.set( compassPlac.x + (int)(compassRadius*Math.cos(Math.toRadians((double) angleDegree + 90 + FloorLayout.getNorthAngle()))),
-                compassPlac.y + (int)(compassRadius*Math.sin(Math.toRadians((double) angleDegree + 90 + FloorLayout.getNorthAngle()))));
+        compassDir.set( compassPlac.x + (int)(compassRadius*Math.cos(angle + Math.toRadians(FloorLayout.getNorthAngle()))),
+                compassPlac.y + (int)(compassRadius*Math.sin(angle + Math.toRadians(FloorLayout.getNorthAngle()))));
     }
 }

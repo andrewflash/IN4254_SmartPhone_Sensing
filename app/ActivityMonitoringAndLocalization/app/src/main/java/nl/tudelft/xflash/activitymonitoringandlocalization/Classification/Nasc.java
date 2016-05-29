@@ -12,6 +12,9 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.Misc.Statistics;
  */
 public class Nasc {
     Activity ActivityMon;
+    double maxNac;
+    int tOpt;
+
     public Nasc(Activity activityMon)
     {
         this.ActivityMon = activityMon;
@@ -61,17 +64,48 @@ public class Nasc {
         return nac;
     }
 
-    public double maxNormalizedAutoCorrelation(int m, int tmin, int tmax) {
+    public void calculateMaxNACandTopt(int m, int tmin, int tmax) {
         int i;
         int j = 0;
+        int tOptimal = tmin;
         double arrNAC[] = {};
         for (i=tmin; i<=tmax; i++) {
             arrNAC[j] = normalizedAutoCorrelation(m, i);
             j++;
         }
-        Statistics stats = new Statistics(arrNAC);
 
-        return stats.getMax();
+        for (i = 0; i < arrNAC.length; i++){
+            double newnumber = arrNAC[i];
+            if ((newnumber > arrNAC[i])){
+                tOptimal = i+tmin;
+            }
+        }
+        Statistics stats = new Statistics(arrNAC);
+        this.maxNac = stats.getMax();
+        this.tOpt = tOptimal;
+    }
+
+    public double getMaxNac() {
+        return this.maxNac;
+    }
+
+    public int gettOpt() {
+        return this.tOpt;
+    }
+
+    public double stdevAccelero(int m, int topt) {
+        double stdev = 0.0;
+        List<AcceleroData> listAcceleroData;
+        double[] arrAcceleroData;
+        AcceleroDBHandler dbAccelero = new AcceleroDBHandler(ActivityMon.getApplicationContext());
+
+        // get stdev from m to m+topt-1
+        listAcceleroData = dbAccelero.getAcceleroDataIDRange(m, m+topt-1);
+        arrAcceleroData = normalizeAcceleroList(listAcceleroData);
+        Statistics stats = new Statistics(arrAcceleroData);
+        stdev = stats.getStdDev();
+
+        return stdev;
     }
 
     private double normalizeAcceleroData(AcceleroData acceleroData) {

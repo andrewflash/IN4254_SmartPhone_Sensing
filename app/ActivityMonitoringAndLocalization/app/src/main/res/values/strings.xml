@@ -21,6 +21,10 @@
     <string name="lbl_assig_1">Assignment 1</string>
     <string name="lbl_assig_2">Assignment 2</string>
     <string name="lbl_adv_localization">PF Localization</string>
+    <string name="lbl_orien_azimuth">Azimuth (Z):</string>
+    <string name="lbl_orien_pitch">Pitch (X):</string>
+    <string name="lbl_orien_roll">Roll (Y):</string>
+    <string name="lbl_activity_PF">Activity:</string>
 
     <!-- Localization -->
     <string name="cell_1">C0</string>

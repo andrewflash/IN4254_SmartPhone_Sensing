@@ -7,14 +7,19 @@ import android.graphics.Point;
 import android.hardware.SensorManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
@@ -22,6 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityMonitoring;
+import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityType;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.LocalizationMonitor;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.OrientationFusion;
@@ -36,10 +42,7 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.WiFi;
  */
 public class PFLocalizationActivity extends AppCompatActivity implements Observer {
 
-    private OrientationFusion orientation;
-    private SensorManager sensorManager;
-    private float[] orientationResults;
-
+    // Layout
     private LocalizationMap localizationView;
     private CompassGUI compassGUI;
     private FloorLayout floorLayout;
@@ -50,9 +53,10 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private static final int N_PARTICLES = 1000;
 
     // Sensors
+    private SensorManager sensorManager;
+    private OrientationFusion orientation;
     private WifiManager wifiManager;
     private WiFi wifi;
-    private float[] accel;
 
     // Accelerometer and Orientation data
     private ArrayList<Float> accelX;
@@ -61,6 +65,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private ArrayList<Float> orienX;
     private ArrayList<Float> orienY;
     private ArrayList<Float> orienZ;
+    private float[] orienAvg = {0,0,0};
 
     // Windows size of accelerometer and orientation sensor
     public int WINDOW_SIZE_ACC;
@@ -81,6 +86,16 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
 
     // Button Flags
     private boolean initInitialBeliefPA = false;
+
+    // Text
+    private TextView txtAzimuth;
+    private TextView txtPitch;
+    private TextView txtRoll;
+    private TextView txtActivityPF;
+
+    // Update View
+    public Handler mHandler;
+    DecimalFormat d = new DecimalFormat("#.##");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,8 +166,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 startTime = System.currentTimeMillis();
             }
 
-            orientationResults = (float[]) orientation.getOrientationResults();
-
             if(accelX.size() <= WINDOW_SIZE_ACC) {
                 this.accelX.add(orientation.getAccel()[0]);
                 this.accelY.add(orientation.getAccel()[1]);
@@ -163,6 +176,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 this.orienX.add(orientation.getOrientationResults()[0]);
                 this.orienY.add(orientation.getOrientationResults()[1]);
                 this.orienZ.add(orientation.getOrientationResults()[2]);
+                orienAvg[0] += orientation.getOrientationResults()[0]/WINDOW_SIZE_ORIENTATION;
+                orienAvg[1] += orientation.getOrientationResults()[1]/WINDOW_SIZE_ORIENTATION;
+                orienAvg[2] += orientation.getOrientationResults()[2]/WINDOW_SIZE_ORIENTATION;
             }
 
             if(this.accelX.size() >= WINDOW_SIZE_ACC && this.orienX.size() >= WINDOW_SIZE_ORIENTATION) {
@@ -174,6 +190,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
 
                 // Add runnable to queue
                 executor.submit(runUpdate);
+
+                // Update View in GUI
+                mHandler.post(updateInfoViewTask);
 
                 // Clear sensor data
                 accelX.clear();
@@ -227,6 +246,13 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         // Add compass to Android GUI
         compassLayout = (LinearLayout)findViewById(R.id.imgCompass);
         compassLayout.addView(compassGUI);
+
+        // Text View
+        mHandler = new Handler();
+        txtAzimuth = (TextView)findViewById(R.id.txtOrienAzimuth);
+        txtPitch = (TextView)findViewById(R.id.txtOrienPitch);
+        txtRoll = (TextView)findViewById(R.id.txtOrienRoll);
+        txtActivityPF = (TextView)findViewById(R.id.txtActivityPF);
     }
 
     private void initSensors(){
@@ -314,9 +340,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         btnSenseBayes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                localizationView.invalidate();
-                compassGUI.invalidate();
-                compassGUI.setAngle(orientationResults[0]);
 //                accelerometer.register();
 //                magnetometer.register();
 //                registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
@@ -324,4 +347,18 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         });
 
     }
+
+    public void updateInfoView() {
+        txtAzimuth.setText(d.format(orienAvg[0] * 180/Math.PI) + '\u00B0');
+        txtPitch.setText(d.format(orienAvg[1] * 180/Math.PI)+ '\u00B0');
+        txtRoll.setText(d.format(orienAvg[2] * 180/Math.PI) + '\u00B0');
+        txtActivityPF.setText(activityMonitoring.getActivity().toString());
+        orienAvg[0] = 0; orienAvg[1] = 0; orienAvg[2] = 0;
+    }
+
+    private Runnable updateInfoViewTask = new Runnable() {
+        public void run() {
+            updateInfoView();
+        }
+    };
 }

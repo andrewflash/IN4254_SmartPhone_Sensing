@@ -2,10 +2,13 @@ package nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.util.Log;
 
 import java.util.ArrayList;
 
 import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.FeatureExtractor;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.FeatureExtractorAC;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.FeatureExtractorMag;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.FeatureExtractorSD;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.FeatureSet;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.KNN;
@@ -24,9 +27,9 @@ public class ActivityMonitoring {
 
     // Readers
     private AbstractReader SDReader;
-    //    private AbstractReader MagReader;
+//    private AbstractReader MagReader;
 //    private AbstractReader ACReader;
-    private AbstractReader FFTReader;
+//    private AbstractReader FFTReader;
 
     // Initialise the Feature type!
     ArrayList<FeatureExtractor> extractor;
@@ -47,13 +50,13 @@ public class ActivityMonitoring {
         //SDReader = new ReaderTest(ctx, R.raw.stdfeature);
 //        MagReader = new ReaderTest(ctx, R.raw.maxfeature);
 //        ACReader = new ReaderTest(ctx, R.raw.acfeature);
-        FFTReader = new ReaderTest(ctx, R.raw.fftfeature);
+//        FFTReader = new ReaderTest(ctx, R.raw.fftfeature);
         //FFTReader = new ReaderTest(ctx, R.raw.fftfeature);
 
         // Choose which features you want
         extractor = new ArrayList<>();
         extractor.add(new FeatureExtractorSD());
-        //extractor.add(new FeatureExtractorMag());
+//        extractor.add(new FeatureExtractorMag());
 //        extractor.add(new FeatureExtractorAC());
 //        extractor.add(new FeatureExtractorFFT());
 
@@ -62,20 +65,23 @@ public class ActivityMonitoring {
         ArrayList<Float> SDList = new ArrayList<>();
 //        ArrayList<Float> MagList = new ArrayList<>();
 //        ArrayList<Float> ACList = new ArrayList<>();
-        ArrayList<Float> FFTList = new ArrayList<>();
+//        ArrayList<Float> FFTList = new ArrayList<>();
         ArrayList<Type> labelsList = new ArrayList<>();
 
         // Get all data from the trainingData file in resources
         SDReader.readData();
 //        MagReader.readData();
 //        ACReader.readData();
-        FFTReader.readData();
+//        FFTReader.readData();
+
         SDList = SDReader.getAllX();
 //         MagList = MagReader.getAllX();
 //        ACList = ACReader.getAllX();
-        FFTList = FFTReader.getAllX();
-        labelsList = SDReader.getAllStates();
+//        FFTList = FFTReader.getAllX();
 
+        labelsList = SDReader.getAllStates();
+//        labelsList = ACReader.getAllStates();
+//        labelsList = MagReader.getAllStates();
 
         ArrayList<LabeledFeatureSet> train = new ArrayList<>();
         for (int i = 0; i < labelsList.size(); i++) {
@@ -83,17 +89,13 @@ public class ActivityMonitoring {
             f.addFeature(SDList.get(i));
 //            f.addFeature(MagList.get(i));
 //            f.addFeature(ACList.get(i));
-            f.addFeature(FFTList.get(i));
+//            f.addFeature(FFTList.get(i));
             train.add(new LabeledFeatureSet(f, labelsList.get(i)));
         }
         knn = new KNN(K, train);
     }
 
-    /**
-     * Return the current Activity that the user is doing.
-     *
-     * @return activity: Queueing, Walking, or None (to be determined activity)
-     */
+    // Get current activity
     public Type getActivity() {
         if (activityList.size() == 0) {
             return Type.NONE;
@@ -101,6 +103,7 @@ public class ActivityMonitoring {
         return activityList.getType(activityList.size() - 1);
     }
 
+    // Update activity based on acc data
     public void update(ArrayList<Float> x, ArrayList<Float> y, ArrayList<Float> z) {
         // Extract features and classify them
         FeatureSet fs = new FeatureSet();

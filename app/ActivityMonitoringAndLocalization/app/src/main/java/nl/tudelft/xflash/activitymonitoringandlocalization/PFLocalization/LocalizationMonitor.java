@@ -16,8 +16,7 @@ public class LocalizationMonitor {
     private ParticleFilter pf;
     private FloorLayout floorLayout;
     //private WalkedPath walkedPath;
-    private int WINDOW_SIZE_ACC;
-    private int WINDOW_SIZE_ORIENTATION;
+    private int WINDOW_SIZE_ORIENTATION;    // Filter the orientation using average
 
     private float angle = 0.0f;
 
@@ -27,19 +26,21 @@ public class LocalizationMonitor {
 
         this.WINDOW_SIZE_ORIENTATION = 20;
 
+        activityList = ActivityType.getInstance();
+
         // Initialize particle filter with nParticles.
         pf = new ParticleFilter(nParticles, floorLayout);
     }
 
     public void initialBelief(ArrayList<ArrayList<Integer>> rssiData){
-        //pf.initialBelief(rssiData);
+        pf.initialBelief(rssiData);
         activityList.empty();
     }
 
     public void reset(){
         //WalkedPath.getInstance().reset();
         pf.resetParticleFilter();
-        //activityList.empty();
+        activityList.empty();
     }
 
     public FloorLayout getFloorLayout(){
@@ -56,31 +57,35 @@ public class LocalizationMonitor {
 
     public boolean update(ArrayList<Float> orientationX, ArrayList<Float> orientationY,
                           ArrayList<Float> orientationZ, float time){
-        //Type activity = activityList.getType(activityList.size() - 1);
 
-        //if (activity == Type.WALK || activity == Type.IDLE ) {
+        Type activity = activityList.getType(activityList.size() - 1);
+
+        if (activity == Type.WALKING || activity == Type.IDLE ) {
             angle = 0f;
             // Average angle per window size
             for (int i = 0; i < WINDOW_SIZE_ORIENTATION; i++) {
                 float[] orientation = {orientationX.get(i), orientationY.get(i), orientationZ.get(i)};
-                //float orienDegree = (float)Math.toDegrees(orientation[0]);
-                //angle +=  (Math.toDegrees(orientation[0]) < 0)?(360+orienDegree):orienDegree;
-                angle += orientation[0];
+                angle += orientation[0]/WINDOW_SIZE_ORIENTATION;
             }
-            angle = angle/WINDOW_SIZE_ORIENTATION;
 
-            // If activity Type update the movement of partcicles
-            //if(activity == Type.WALK){
-                //pf.movement(angle, time);
-                // Log.i("BP TEST", "x=" + pf.bestParticle().getCurrentLocation().getX() + "y=" + pf.bestParticle().getCurrentLocation().getY());
-            //}
+            // If activity Type is WALKING, update the movement of partcicles
+            if(activity == Type.WALKING) {
+                pf.movement(angle, time);
+            }
 
             return true;
-        //}
-        //return false;
+        }
+        return false;
     }
 
-//    public Location particleConvergent(){
-//        return pf.converged(3f);
-//    }
+    public Location particleConverged(){
+        return pf.converged(3f);
+    }
+
+    public Particle forceConverge(){
+        //WalkedPath walkedPath = WalkedPath.getInstance();
+        Particle bestParticle = pf.bestParticle();
+        //walkedPath.setPath(bestParticle.getCurrentLocation());
+        return bestParticle;
+    }
 }

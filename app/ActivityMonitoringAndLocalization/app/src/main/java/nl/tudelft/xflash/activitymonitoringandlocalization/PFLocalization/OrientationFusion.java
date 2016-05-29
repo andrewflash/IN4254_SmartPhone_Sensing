@@ -15,10 +15,10 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.ObserverSensor
 
 /**
  * Created by xflash on 27-5-16.
+ * Source: http://www.codeproject.com/Articles/729759/Android-Sensor-Fusion-Tutorial
  */
 public class OrientationFusion extends Observable implements ObserverSensor {
 
-    private SensorManager sensorManager;
     private Accelerometer accelerometer;
     private Magnetometer magnetometer;
     private Gyroscope gyroscope;
@@ -137,7 +137,7 @@ public class OrientationFusion extends Observable implements ObserverSensor {
              * if it is greater than 180\B0. This stabilizes the output in positive-to-negative-transition cases.
              */
 
-            // azimuth
+            // azimuth (Orientation Z)
             if (gyroOrientation[0] < -0.5 * Math.PI && accMagOrientation[0] > 0.0) {
                 fusedOrientation[0] = (float) (FILTER_COEFFICIENT * (gyroOrientation[0] + 2.0 * Math.PI) + oneMinusCoeff * accMagOrientation[0]);
                 fusedOrientation[0] -= (fusedOrientation[0] > Math.PI) ? 2.0 * Math.PI : 0;
@@ -148,7 +148,7 @@ public class OrientationFusion extends Observable implements ObserverSensor {
                 fusedOrientation[0] = FILTER_COEFFICIENT * gyroOrientation[0] + oneMinusCoeff * accMagOrientation[0];
             }
 
-            // pitch
+            // pitch (Orientation X)
             if (gyroOrientation[1] < -0.5 * Math.PI && accMagOrientation[1] > 0.0) {
                 fusedOrientation[1] = (float) (FILTER_COEFFICIENT * (gyroOrientation[1] + 2.0 * Math.PI) + oneMinusCoeff * accMagOrientation[1]);
                 fusedOrientation[1] -= (fusedOrientation[1] > Math.PI) ? 2.0 * Math.PI : 0;
@@ -161,7 +161,7 @@ public class OrientationFusion extends Observable implements ObserverSensor {
                 fusedOrientation[1] = FILTER_COEFFICIENT * gyroOrientation[1] + oneMinusCoeff * accMagOrientation[1];
             }
 
-            // roll
+            // roll (Orientation Y)
             if (gyroOrientation[2] < -0.5 * Math.PI && accMagOrientation[2] > 0.0) {
                 fusedOrientation[2] = (float) (FILTER_COEFFICIENT * (gyroOrientation[2] + 2.0 * Math.PI) + oneMinusCoeff * accMagOrientation[2]);
                 fusedOrientation[2] -= (fusedOrientation[2] > Math.PI) ? 2.0 * Math.PI : 0;

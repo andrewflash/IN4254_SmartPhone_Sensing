@@ -61,7 +61,7 @@ public class LocalizationMap extends View {
         //walkedPath.initTransform(scaleMatrix, offSetX, offSetY);
 
         particlePaint = new Paint();
-        particlePaint.setStrokeWidth(3);
+        particlePaint.setStrokeWidth(4);
         particlePaint.setColor(Color.RED);
 
         wallPaint = new Paint();

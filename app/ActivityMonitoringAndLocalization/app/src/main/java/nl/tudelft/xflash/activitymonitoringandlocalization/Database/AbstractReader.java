@@ -1,6 +1,7 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.Database;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.DataInputStream;
 import java.io.IOException;
