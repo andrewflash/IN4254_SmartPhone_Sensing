@@ -22,6 +22,7 @@
         </activity>
         <activity android:name=".ActivityMonActivity"></activity>
         <activity android:name=".LocalizationActivity"></activity>
+        <activity android:name=".PFLocalizationActivity"></activity>
     </application>
 
 </manifest>

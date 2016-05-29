@@ -16,7 +16,7 @@ import android.widget.Toast;
 import java.util.concurrent.Executors;
 
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityMonitoring;
-import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ObserverSensor;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.ObserverSensor;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Database.AcceleroDBHandler;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Database.AcceleroData;
@@ -27,6 +27,9 @@ public class ActivityMonActivity extends AppCompatActivity implements ObserverSe
 
     private SensorManager sensorManager;
     private Accelerometer accelerometer;
+
+    // Sampling rate
+    private static final int accelSamplingPeriodUs = 20000; // 20ms sampling period (50 Hz)
 
     // Flag
     private boolean initAccel = false;
@@ -95,7 +98,7 @@ public class ActivityMonActivity extends AppCompatActivity implements ObserverSe
                 state = Type.WALKING;
                 if(initAccel) {
                     btnStartWalking.setText(R.string.btn_walking_stop);
-                    accelerometer.register();
+                    accelerometer.register(accelSamplingPeriodUs);
                     initAccel = false;
                 } else {
                     accelerometer.unregister();
@@ -111,10 +114,10 @@ public class ActivityMonActivity extends AppCompatActivity implements ObserverSe
         btnStartStanding = (Button) findViewById(R.id.btnStanding);
         btnStartStanding.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                state = Type.STANDING;
+                state = Type.IDLE;
                 if (initAccel) {
                     btnStartStanding.setText(R.string.btn_standing_stop);
-                    accelerometer.register();
+                    accelerometer.register(accelSamplingPeriodUs);
                     initAccel = false;
                 } else {
                     accelerometer.unregister();

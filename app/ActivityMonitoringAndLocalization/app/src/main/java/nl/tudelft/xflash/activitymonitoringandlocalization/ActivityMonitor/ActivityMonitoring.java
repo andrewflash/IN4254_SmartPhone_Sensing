@@ -43,11 +43,11 @@ public class ActivityMonitoring {
         Resources res = ctx.getResources();
 
         // initialise the readers to train kNN
-        SDReader = new Reader(ctx, res.getString(R.string.activity_file_feature_sd));
+        SDReader = new ReaderTest(ctx, R.raw.stdfeature);
         //SDReader = new ReaderTest(ctx, R.raw.stdfeature);
 //        MagReader = new ReaderTest(ctx, R.raw.maxfeature);
 //        ACReader = new ReaderTest(ctx, R.raw.acfeature);
-        FFTReader = new Reader(ctx, res.getString(R.string.activity_file_feature_fft));
+        FFTReader = new ReaderTest(ctx, R.raw.fftfeature);
         //FFTReader = new ReaderTest(ctx, R.raw.fftfeature);
 
         // Choose which features you want

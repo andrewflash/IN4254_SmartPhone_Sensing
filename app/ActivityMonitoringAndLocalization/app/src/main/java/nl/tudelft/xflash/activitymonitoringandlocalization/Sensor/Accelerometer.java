@@ -11,7 +11,7 @@ import android.util.Log;
 public class Accelerometer extends AbstractSensor {
 
     private static float[] gravity = {0f,0f,0f};
-    private int numSamples = 0;
+    private static int numSamples = 0;
 
     public Accelerometer(SensorManager sm){
         super(sm);
@@ -29,7 +29,7 @@ public class Accelerometer extends AbstractSensor {
 
     @Override
     public void onAccuracyChanged(Sensor sensor,int accuracy){
-
+        // // Do something here if sensor accuracy changes
     }
 
     @Override
@@ -39,6 +39,7 @@ public class Accelerometer extends AbstractSensor {
             gravity[0] = event.values[0];
             gravity[1] = event.values[1];
             gravity[2] = event.values[2];
+            numSamples = numSamples + 1;
 
             this.notifyObserver(Sensor.TYPE_ACCELEROMETER);
         }
@@ -47,4 +48,6 @@ public class Accelerometer extends AbstractSensor {
     public static float[] getGravity(){
         return gravity;
     }
+
+    public static int getNumSamples() { return numSamples;}
 }

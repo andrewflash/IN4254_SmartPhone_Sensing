@@ -29,4 +29,16 @@ public class RecordActivity {
         this.y = y;
         this.z = z;
     }
+
+    public ContentValues toContentValues(){
+        ContentValues values = new ContentValues();
+        values.put(DatabaseModel.TableAccel.COL_NAME_TRIAL      , this.trial);
+        values.put(DatabaseModel.TableAccel.COL_NAME_TIMESTAMP  , this.timestamp);
+        values.put(DatabaseModel.TableAccel.COL_NAME_ACCURACY   , this.accuracy);
+        values.put(DatabaseModel.TableAccel.COL_NAME_ACTIVITY   , this.activityType);
+        values.put(DatabaseModel.TableAccel.COL_NAME_X          , this.x);
+        values.put(DatabaseModel.TableAccel.COL_NAME_Y          , this.y);
+        values.put(DatabaseModel.TableAccel.COL_NAME_Z          , this.z);
+        return  values;
+    }
 }

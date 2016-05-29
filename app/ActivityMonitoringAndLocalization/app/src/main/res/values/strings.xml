@@ -18,6 +18,9 @@
     <string name="btn_scan_and_sample_wifi_info_scan">Scanning WiFi</string>
     <string name="btn_test_localization">Test Localization</string>
     <string name="lbl_location">Location:</string>
+    <string name="lbl_assig_1">Assignment 1</string>
+    <string name="lbl_assig_2">Assignment 2</string>
+    <string name="lbl_adv_localization">PF Localization</string>
 
     <!-- Localization -->
     <string name="cell_1">C0</string>
@@ -38,4 +41,5 @@
     <string name="activity_file_feature_fft">activity_mon_fft.txt</string>
     <string name="state">State:</string>
     <string name="clear_data">Clear Data</string>
+    <string name="assignment_1">Assignment 1</string>
 </resources>
