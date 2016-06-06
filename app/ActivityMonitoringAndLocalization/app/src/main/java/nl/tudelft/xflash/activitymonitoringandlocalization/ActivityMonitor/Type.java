@@ -20,10 +20,10 @@ public enum Type {
                 return null;
         }
     },
-    STANDING{
+    IDLE{
         public Type fromStringToType(String s){
-            if(STANDING.toString().equals(s))
-                return Type.STANDING;
+            if(IDLE.toString().equals(s))
+                return Type.IDLE;
             else
                 return null;
         }

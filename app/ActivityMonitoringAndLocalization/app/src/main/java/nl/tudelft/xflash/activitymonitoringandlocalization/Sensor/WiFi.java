@@ -20,7 +20,7 @@ public class WiFi extends  BroadcastReceiver {
     private ArrayList<ArrayList<Integer>> RSSI;
     private WifiObservable o;
 
-    public WiFi(WifiManager _wifi){
+    public WiFi(WifiManager _wifi) {
         super();
         this.wifi = _wifi;
         wifiPoints = new ArrayList<>();
@@ -28,12 +28,15 @@ public class WiFi extends  BroadcastReceiver {
         o = new WifiObservable();
     }
 
-    public ArrayList<ArrayList<Integer>> getRSSI(){
+    public ArrayList<ArrayList<Integer>> getRSSI() {
         return this.RSSI;
     }
-    public ArrayList<String> getWifiPoints(){
+
+    public ArrayList<String> getWifiPoints() {
         return this.wifiPoints;
-    };
+    }
+
+    ;
 
 
     @Override
@@ -41,46 +44,49 @@ public class WiFi extends  BroadcastReceiver {
 
         List<ScanResult> results = wifi.getScanResults();
         try {
-            ArrayList<Integer> out =  new ArrayList<>();
+            ArrayList<Integer> out = new ArrayList<>();
             for (int j = 0; j < wifiPoints.size(); j++) {
                 out.add(0);
             }
             for (int n = 0; n < results.size(); n++) {
                 int i = wifiPoints.lastIndexOf(results.get(n).BSSID);
-                if(i >= 0){
+                if (i >= 0) {
                     //already know this wifi point
                     out.set(i, results.get(n).level);
-                }
-                else{
+                } else {
                     //add new wifi point
                     wifiPoints.add(results.get(n).BSSID);
                     out.add(results.get(n).level);
-                    for (ArrayList<Integer> t : RSSI){
+                    for (ArrayList<Integer> t : RSSI) {
                         t.add(0);
                     }
                 }
             }
             RSSI.add(out);
             o.notifyObservers();
-        }
-        catch (Exception e) {
-            Log.i("Wifi test","exception " + e.toString() );
-        }
-    }
-    public void clear(){
-        this.RSSI.clear();
-        this.wifiPoints.clear();
-    }
-    public WifiObservable getObservable(){
-        return o;
-    }
-    public class WifiObservable extends Observable {
-        public WifiObservable(){
-            super();
-        }
-        public void mySetChanged(){
-            this.setChanged();
+        } catch (Exception e) {
+            Log.i("Wifi test", "exception " + e.toString());
         }
     }
 
+    public void clear() {
+        this.RSSI.clear();
+        this.wifiPoints.clear();
+    }
+
+    public WifiObservable getObservable() {
+        return o;
+    }
+
+    public class WifiObservable extends Observable {
+        public WifiObservable() {
+            super();
+        }
+
+        public void mySetChanged() {
+            this.setChanged();
+        }
+    }
 }
+
+

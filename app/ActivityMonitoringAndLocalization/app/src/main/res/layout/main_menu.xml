@@ -20,13 +20,22 @@
         android:gravity="center_vertical|center_horizontal"
         android:layout_weight="0.2" />
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/lbl_assig_1"
+        android:id="@+id/lblAssig1"
+        android:layout_gravity="center_horizontal"
+        android:paddingLeft="10dp"
+        android:textSize="10pt"/>
+
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/btn_menu_activity"
         android:id="@+id/btnActivity"
         android:clickable="true"
-        android:layout_weight="0.3"
+        android:layout_weight="0.2"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="0.2dp"
         android:onClick="startActivityMonitoring" />
@@ -38,7 +47,25 @@
         android:id="@+id/btnLocalization"
         android:clickable="true"
         android:onClick="startLocalization"
-        android:layout_weight="0.3"
+        android:layout_weight="0.2"
         android:layout_gravity="center_horizontal" />
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/lbl_assig_2"
+        android:id="@+id/lblAssig1"
+        android:layout_gravity="center_horizontal"
+        android:padding="10dp"
+        android:textSize="10pt"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/lbl_adv_localization"
+        android:id="@+id/btnAdvLocalization"
+        android:clickable="true"
+        android:onClick="startPFLocalization"
+        android:layout_weight="0.2"
+        android:layout_gravity="center_horizontal" />
 </LinearLayout>

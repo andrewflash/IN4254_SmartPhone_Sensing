@@ -1,6 +1,7 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.Database;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -33,7 +34,6 @@ public abstract class AbstractReader {
         }
         return false;
     }
-
 
     public void readData(){
         String str = "";

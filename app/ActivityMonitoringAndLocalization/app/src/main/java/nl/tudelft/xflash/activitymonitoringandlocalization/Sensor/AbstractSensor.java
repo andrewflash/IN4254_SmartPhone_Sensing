@@ -6,8 +6,6 @@ import android.hardware.SensorManager;
 
 import java.util.ArrayList;
 
-import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ObserverSensor;
-
 /**
  * Created by xflash on 4-5-16.
  */
@@ -34,9 +32,10 @@ public abstract class AbstractSensor implements SensorEventListener {
     /**
      * Register the event listener for certain sensor.
      */
-    public void register(){
+    public void register(int samplingPeriodUs){
         if(sensorAvailable) {
-            sm.registerListener(this, type, SensorManager.SENSOR_DELAY_FASTEST);
+            //sm.registerListener(this, type, SensorManager.SENSOR_DELAY_FASTEST);
+            sm.registerListener(this, type, samplingPeriodUs);
         }
     }
 

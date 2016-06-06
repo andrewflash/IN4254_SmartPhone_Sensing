@@ -90,7 +90,6 @@ public class DatabaseAPI {
         return db.insert(tablename, null, values);
     }
 
-
     // Logging
     private String logname;
 

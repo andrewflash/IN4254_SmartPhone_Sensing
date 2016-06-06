@@ -1,5 +1,7 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.Classification;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
