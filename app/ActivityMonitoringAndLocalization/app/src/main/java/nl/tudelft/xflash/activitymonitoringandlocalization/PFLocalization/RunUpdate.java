@@ -1,12 +1,11 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization;
 
-import android.graphics.Color;
-import android.util.Log;
-
 import java.util.ArrayList;
 
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityMonitoring;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.Location;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.ParticleFilter.Particle;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.CompassGUI;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.LocalizationMap;
 
@@ -52,14 +51,15 @@ public class RunUpdate implements Runnable {
     public void run() {
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
 
+        // Update activity monitor
         this.activityMonitoring.update(accelX, accelY, accelZ);
 
+        // Update localization monitor
         if (this.localizationMonitor.update(orienX,orienY,orienZ,dT)) {
 
             // Check for convergence and change the color of particles
             final Location convergedLoc = localizationMonitor.particleConverged();
             if(convergedLoc != null){
-                localizationMap.setColor(Color.BLUE);
                 final Particle convergeLocation = localizationMonitor.forceConverge();
                 this.localizationMap.post(new Runnable() {
                     @Override

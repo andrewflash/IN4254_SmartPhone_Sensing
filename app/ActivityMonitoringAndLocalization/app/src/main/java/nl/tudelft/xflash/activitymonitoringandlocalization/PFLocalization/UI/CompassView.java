@@ -4,9 +4,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
-import android.util.Log;
 
-import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
 
 /**
  * Created by xflash on 29-5-16.
@@ -44,7 +43,7 @@ public class CompassView {
     }
 
     public void setAngle(float angle){
-        compassDir.set( compassPlac.x + (int)(compassRadius*Math.cos(angle + Math.toRadians(FloorLayout.getNorthAngle()))),
-                compassPlac.y + (int)(compassRadius*Math.sin(angle + Math.toRadians(FloorLayout.getNorthAngle()))));
+        compassDir.set( compassPlac.x + (int)(compassRadius*Math.cos(-angle + Math.toRadians(FloorLayout.getNorthAngle()))),
+                compassPlac.y + (int)(compassRadius*Math.sin(-angle + Math.toRadians(FloorLayout.getNorthAngle()))));
     }
 }

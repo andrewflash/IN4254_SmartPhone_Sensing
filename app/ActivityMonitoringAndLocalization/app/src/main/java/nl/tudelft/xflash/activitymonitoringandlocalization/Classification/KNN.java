@@ -40,6 +40,7 @@ public class KNN extends Classifier {
         return this.data;
     }
 
+    // KNN Classification
     @Override
     public Type classify(FeatureSet inputData) {
         //Construct mapping of distances to inputData
@@ -82,6 +83,8 @@ public class KNN extends Classifier {
         }
         return kClosestLabels.get(maxIndex);
     }
+
+    // Update covariances for Mahalanobis distance
     private void updateCovariances(){
         covariances.clear();
         //Calculate covariances for Mahalanobis distance
@@ -95,6 +98,8 @@ public class KNN extends Classifier {
             }
         }
     }
+
+    // Mahalanobis distance
     public float mahaDistance(FeatureSet f1, FeatureSet f2){
         if(f1.getData().size() != f2.getData().size()){
             return Float.NaN;
@@ -103,6 +108,19 @@ public class KNN extends Classifier {
         for (int i = 0; i < f1.getData().size(); i++){
             float x = (f1.getData().get(i) - f2.getData().get(i))/covariances.get(i);
             distance += x*x;
+        }
+        return (float) Math.sqrt(distance);
+    }
+
+    // Euclidean distance
+    public float euclideanDistance(FeatureSet f1, FeatureSet f2) {
+        if(f1.getData().size() != f2.getData().size()) {
+            return Float.NaN;
+        }
+        float distance = 0;
+        for(int i = 0; i < f1.getData().size(); i++) {
+            float r = (f1.getData().get(i) - f2.getData().get(i));
+            distance += r*r;
         }
         return (float) Math.sqrt(distance);
     }
