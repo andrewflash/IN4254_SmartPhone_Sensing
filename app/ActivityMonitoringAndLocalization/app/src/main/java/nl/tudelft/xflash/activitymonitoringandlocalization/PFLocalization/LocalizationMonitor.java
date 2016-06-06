@@ -1,11 +1,14 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization;
 
 import android.content.Context;
-import android.util.Log;
 
 import java.util.ArrayList;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityType;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.Location;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.ParticleFilter.Particle;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.ParticleFilter.ParticleFilter;
 
 /**
  * Created by xflash on 29-5-16.
@@ -16,15 +19,13 @@ public class LocalizationMonitor {
     private ParticleFilter pf;
     private FloorLayout floorLayout;
     //private WalkedPath walkedPath;
-    private int WINDOW_SIZE_ORIENTATION;    // Filter the orientation using average
 
     private float angle = 0.0f;
+    private float[] mov = {0,0};
 
     public LocalizationMonitor(Context context, FloorLayout floorLayout, int nParticles) {
         // Initialize floor layout
         this.floorLayout = floorLayout;
-
-        this.WINDOW_SIZE_ORIENTATION = 20;
 
         activityList = ActivityType.getInstance();
 
@@ -63,18 +64,27 @@ public class LocalizationMonitor {
         if (activity == Type.WALKING || activity == Type.IDLE ) {
             angle = 0f;
             // Average angle per window size
-            for (int i = 0; i < WINDOW_SIZE_ORIENTATION; i++) {
+            for (int i = 0; i < orientationX.size(); i++) {
                 float[] orientation = {orientationX.get(i), orientationY.get(i), orientationZ.get(i)};
-                angle += orientation[0]/WINDOW_SIZE_ORIENTATION;
+                angle += orientation[0]/orientationX.size();
             }
 
-            // If activity Type is WALKING, update the movement of partcicles
+            // If activity Type is WALKING, update the movement of particles
             if(activity == Type.WALKING) {
                 pf.movement(angle, time);
+                mov = pf.getMovement();
+            }
+
+            // If idle clear mov
+            if(activity == Type.IDLE) {
+                // Clear mov
+                mov[0] = 0;
+                mov[1] = 0;
             }
 
             return true;
         }
+
         return false;
     }
 
@@ -87,5 +97,9 @@ public class LocalizationMonitor {
         Particle bestParticle = pf.bestParticle();
         //walkedPath.setPath(bestParticle.getCurrentLocation());
         return bestParticle;
+    }
+
+    public float[] getMovement() {
+        return mov;
     }
 }

@@ -15,10 +15,13 @@ public abstract class Classifier {
     public abstract void clearTrainingData();
     public abstract List<LabeledFeatureSet> getAllTrainingData();
 
+    // Retrain data
     public void retrain(List<LabeledFeatureSet> trainingDataSet) {
         clearTrainingData();
         addTrainingData(trainingDataSet);
     }
+
+    // Add Feature set to classify list
     public List<Type> classifyList(List<FeatureSet> inputList) {
         List<Type> labelList = new ArrayList<>();
         for (FeatureSet set : inputList) {
@@ -26,6 +29,8 @@ public abstract class Classifier {
         }
         return labelList;
     }
+
+    // Test input data
     public float test(List<LabeledFeatureSet> testDataSet) {
         int correct=0;
         for (LabeledFeatureSet featSet : testDataSet ){
@@ -36,6 +41,8 @@ public abstract class Classifier {
         }
         return (float) correct/testDataSet.size();
     }
+
+    // Extract labelled feature set
     public static ArrayList<LabeledFeatureSet> extractLabeledData(ArrayList<LabeledFeatureSet> data, Type a){
         ArrayList<LabeledFeatureSet> out = new ArrayList<>();
         for(LabeledFeatureSet f : data){
@@ -45,6 +52,8 @@ public abstract class Classifier {
         }
         return out;
     }
+
+    // Get label list
     public  List<Type> getLabelList(){
         ArrayList<Type> out = new ArrayList<>();
         for(LabeledFeatureSet f : getAllTrainingData()){
@@ -55,6 +64,7 @@ public abstract class Classifier {
         return out;
     }
 
+    // Leave one out
     public float leaveOneOut(){
         ArrayList<LabeledFeatureSet> save = new ArrayList<>(getAllTrainingData());
         int correct = 0;

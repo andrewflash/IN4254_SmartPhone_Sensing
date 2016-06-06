@@ -9,16 +9,12 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Observable;
@@ -27,11 +23,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityMonitoring;
-import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityType;
-import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.LocalizationMonitor;
-import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.OrientationFusion;
-import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.ParticleFilter;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.Sensor.OrientationFusion;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.RunUpdate;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.CompassGUI;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.LocalizationMap;
@@ -91,7 +85,13 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private TextView txtAzimuth;
     private TextView txtPitch;
     private TextView txtRoll;
+    private TextView txtAccelX;
+    private TextView txtAccelY;
+    private TextView txtAccelZ;
     private TextView txtActivityPF;
+    private TextView txtdX;
+    private TextView txtdY;
+    private TextView txtTotalStep;
 
     // Update View
     public Handler mHandler;
@@ -252,7 +252,15 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         txtAzimuth = (TextView)findViewById(R.id.txtOrienAzimuth);
         txtPitch = (TextView)findViewById(R.id.txtOrienPitch);
         txtRoll = (TextView)findViewById(R.id.txtOrienRoll);
+        txtAccelX = (TextView)findViewById(R.id.txtAccelX);
+        txtAccelY = (TextView)findViewById(R.id.txtAccelY);
+        txtAccelZ = (TextView)findViewById(R.id.txtAccelZ);
+
         txtActivityPF = (TextView)findViewById(R.id.txtActivityPF);
+
+        txtdX = (TextView)findViewById(R.id.txtdX);
+        txtdY = (TextView)findViewById(R.id.txtdY);
+        txtTotalStep = (TextView)findViewById(R.id.txtTotalStep);
     }
 
     private void initSensors(){
@@ -318,7 +326,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     }
                     catch (Exception e){}
                     initInitialBeliefPA = false;
-                    btnInitialBeliefPA.setText("INITIAL BELIEF");
+                    btnInitialBeliefPA.setText("INITIAL BELIEF PA");
                 }
             }
         });
@@ -352,6 +360,11 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         txtAzimuth.setText(d.format(orienAvg[0] * 180/Math.PI) + '\u00B0');
         txtPitch.setText(d.format(orienAvg[1] * 180/Math.PI)+ '\u00B0');
         txtRoll.setText(d.format(orienAvg[2] * 180/Math.PI) + '\u00B0');
+        txtAccelX.setText(d.format(orientation.getAccel()[0]) + " m/s" + '\u00B2');
+        txtAccelY.setText(d.format(orientation.getAccel()[1]) + " m/s" + '\u00B2');
+        txtAccelZ.setText(d.format(orientation.getAccel()[2]) + " m/s" + '\u00B2');
+        txtdX.setText(d.format(localizationMonitor.getMovement()[0]) + " m");
+        txtdY.setText(d.format(localizationMonitor.getMovement()[1]) + " m");
         txtActivityPF.setText(activityMonitoring.getActivity().toString());
         orienAvg[0] = 0; orienAvg[1] = 0; orienAvg[2] = 0;
     }

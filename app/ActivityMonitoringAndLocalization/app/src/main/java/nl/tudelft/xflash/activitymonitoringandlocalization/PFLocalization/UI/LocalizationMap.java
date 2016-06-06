@@ -7,13 +7,12 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
-import android.util.Log;
 import android.view.View;
 
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.Particle;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.ParticleFilter.Particle;
 
 /**
  * Created by xflash on 28-5-16.
