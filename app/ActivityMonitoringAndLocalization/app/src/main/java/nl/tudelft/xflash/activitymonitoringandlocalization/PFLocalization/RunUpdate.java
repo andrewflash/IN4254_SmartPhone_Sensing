@@ -55,7 +55,6 @@ public class RunUpdate implements Runnable {
     public void run() {
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
 
-        Log.d(this.getClass().getSimpleName(), "this.activityMonitoring.update");
         // Update activity monitor
         this.activityMonitoring.update(accelX, accelY, accelZ);
 
