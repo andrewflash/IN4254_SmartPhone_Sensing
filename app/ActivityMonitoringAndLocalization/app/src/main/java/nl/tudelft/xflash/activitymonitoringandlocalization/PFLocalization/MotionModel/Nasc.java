@@ -31,11 +31,10 @@ public class Nasc {
     // samplesX, samplesY, samplesZ have length t+t-1
     public double normalizedAutoCorrelation(int t) {
         int k = 0;
-        double a;
+        double a, b;
         double mu1, mu2, stdev1, stdev2;
         double nac;
-        double firstElm = 0.0;
-        double secondElm = 0.0;
+        double upper = 0.0;
         double[] arrAcceleroData;
         arrAcceleroData = new double[t+t-1];
 
@@ -58,21 +57,18 @@ public class Nasc {
         for (k = 0; k < t; k++) {
             // get accelerometer m+k
             a = normalizeAcceleroData(this.arrayListX.get(k), this.arrayListY.get(k), this.arrayListZ.get(k));
-            firstElm = firstElm + (a-mu1);
-
             // get accelerometer m+k+t
-            a = normalizeAcceleroData(this.arrayListX.get(k+t), this.arrayListY.get(k+t), this.arrayListZ.get(k+t));
-            secondElm = secondElm + (a-mu2);
+            b = normalizeAcceleroData(this.arrayListX.get(k+t), this.arrayListY.get(k+t), this.arrayListZ.get(k+t));
+            upper = upper + (a-mu1)*(b-mu2);
         }
 
         // calculate nac: get the normalization value of the upper elements, divide by the lower elements
-//        nac = Math.sqrt(Math.pow(firstElm, 2)+Math.pow(secondElm, 2));
-//        nac = nac / (t*stdev1*stdev2);
+        nac = upper / (t*stdev1*stdev2);
 
         // calculate nac: divide upper elements by the lower elements, then normalize
-        firstElm = firstElm / (t*stdev1*stdev2);
-        secondElm = secondElm / (t*stdev1*stdev2);
-        nac = Math.sqrt(Math.pow(firstElm, 2)+Math.pow(secondElm, 2));
+//        firstElm = firstElm / (t*stdev1*stdev2);
+//        secondElm = secondElm / (t*stdev1*stdev2);
+//        nac = Math.sqrt(Math.pow(firstElm, 2)+Math.pow(secondElm, 2));
 
         return nac;
     }

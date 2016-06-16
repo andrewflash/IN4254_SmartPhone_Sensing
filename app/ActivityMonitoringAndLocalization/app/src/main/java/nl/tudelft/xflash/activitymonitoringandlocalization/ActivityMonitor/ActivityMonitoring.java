@@ -58,10 +58,10 @@ public class ActivityMonitoring {
         Log.d(this.getClass().getSimpleName(), "maxNAC is " + maxNAC);
 
         // malah kebalikannya paper
-        if(stdevAcc > 0.01) {
+        if(stdevAcc < 0.01) {
             state = Type.IDLE;
         }
-        if(maxNAC < 0.7) {
+        if(maxNAC > 0.7) {
             state = Type.WALKING;
         }
         return state;
@@ -73,10 +73,6 @@ public class ActivityMonitoring {
             return Type.NONE;
         }
         return activityList.getType(activityList.size() - 1);
-    }
-
-    public boolean isFinished() {
-        return this.finished;
     }
 
     // Update activity based on acc data
