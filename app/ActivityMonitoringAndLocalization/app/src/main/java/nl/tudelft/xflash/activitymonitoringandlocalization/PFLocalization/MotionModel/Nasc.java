@@ -42,14 +42,18 @@ public class Nasc {
         // get mean from m to m+t-1
         arrAcceleroData = normalizeAcceleroList(this.arrayListX.subList(0, t-1),
                 this.arrayListY.subList(0, t-1), this.arrayListZ.subList(0, t-1));
-        Statistics stats1 = new Statistics(arrAcceleroData);
-        mu1 = stats1.getMean();
+        Statistics stats = new Statistics(arrAcceleroData);
+        mu1 = stats.getMean();
+        // get stdev from m to m+t-1
+        stdev1 = stats.getStdDev();
 
         // get mean from m+t to m+t+t-1
         arrAcceleroData = normalizeAcceleroList(this.arrayListX.subList(t, t+t-1),
                 this.arrayListY.subList(t, t+t-1), this.arrayListZ.subList(t, t+t-1));
-        Statistics stats2 = new Statistics(arrAcceleroData);
-        mu2 = stats2.getMean();
+        stats = new Statistics(arrAcceleroData);
+        mu2 = stats.getMean();
+        // get stdev from m+t to m+t+t-1
+        stdev2 = stats.getStdDev();
 
         for (k = 0; k < t; k++) {
             // get accelerometer m+k
@@ -61,13 +65,14 @@ public class Nasc {
             secondElm = secondElm + (a-mu2);
         }
 
-        // get stdev from m to m+t-1
-        stdev1 = stats1.getStdDev();
-        // get stdev from m+t to m+t+t-1
-        stdev2 = stats2.getStdDev();
         // calculate nac: get the normalization value of the upper elements, divide by the lower elements
+//        nac = Math.sqrt(Math.pow(firstElm, 2)+Math.pow(secondElm, 2));
+//        nac = nac / (t*stdev1*stdev2);
+
+        // calculate nac: divide upper elements by the lower elements, then normalize
+        firstElm = firstElm / (t*stdev1*stdev2);
+        secondElm = secondElm / (t*stdev1*stdev2);
         nac = Math.sqrt(Math.pow(firstElm, 2)+Math.pow(secondElm, 2));
-        nac = nac / (t*stdev1*stdev2);
 
         return nac;
     }
@@ -90,6 +95,7 @@ public class Nasc {
                 tOptimal = i+tmin;
             }
         }
+
         Statistics stats = new Statistics(arrNAC);
         this.maxNac = stats.getMax();
         this.tOpt = tOptimal;

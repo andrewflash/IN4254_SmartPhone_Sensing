@@ -71,7 +71,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private float angle;
 
     // Windows size of accelerometer and orientation sensor
-    public static final int SAMPLING_RATE_ACC = 20000; // 50 Hz (1/20000 us)
+    public static final int SAMPLING_RATE_ACC = 1000; // 1000 Hz (1/1000 us)
     public static final int SAMPLING_RATE_ORIENTATION = 20000; // 50 Hz (1/20000 us)
     public static final int WINDOW_SIZE_ACC = 250;
     public static final int WINDOW_SIZE_ORIENTATION = 5;
@@ -189,9 +189,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         if(SensorType == Sensor.TYPE_ACCELEROMETER) {
             // Collect accelero data as large as WINDOW SIZE
             if(accelX.size() <= WINDOW_SIZE_ACC) {
-                this.accelX.add(Accelerometer.getGravity()[0]);
-                this.accelY.add(Accelerometer.getGravity()[1]);
-                this.accelZ.add(Accelerometer.getGravity()[2]);
+                this.accelX.add(Accelerometer.getLinearAcceleration()[0]);
+                this.accelY.add(Accelerometer.getLinearAcceleration()[1]);
+                this.accelZ.add(Accelerometer.getLinearAcceleration()[2]);
             }
         } else if(SensorType == Sensor.TYPE_ROTATION_VECTOR) {
             angle = RotationSensor.getAngleRad();
@@ -440,12 +440,12 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     }
 
     public void updateInfoView() {
-        txtAzimuth.setText(d.format(orienAvg[0]) + '\u00B0');
-        txtPitch.setText(d.format(orienAvg[1]) + '\u00B0');
-        txtRoll.setText(d.format(orienAvg[2]) + '\u00B0');
-        txtAccelX.setText(d.format(Accelerometer.getGravity()[0]) + " m/s" + '\u00B2');
-        txtAccelY.setText(d.format(Accelerometer.getGravity()[1]) + " m/s" + '\u00B2');
-        txtAccelZ.setText(d.format(Accelerometer.getGravity()[2]) + " m/s" + '\u00B2');
+//        txtAzimuth.setText(d.format(orienAvg[0]) + '\u00B0');
+//        txtPitch.setText(d.format(orienAvg[1]) + '\u00B0');
+//        txtRoll.setText(d.format(orienAvg[2]) + '\u00B0');
+//        txtAccelX.setText(d.format(Accelerometer.getGravity()[0]) + " m/s" + '\u00B2');
+//        txtAccelY.setText(d.format(Accelerometer.getGravity()[1]) + " m/s" + '\u00B2');
+//        txtAccelZ.setText(d.format(Accelerometer.getGravity()[2]) + " m/s" + '\u00B2');
         txtdX.setText(d.format(localizationMonitor.getMovement()[0]) + " m");
         txtdY.setText(d.format(localizationMonitor.getMovement()[1]) + " m");
         txtActivityPF.setText(activityMonitoring.getActivity().toString());

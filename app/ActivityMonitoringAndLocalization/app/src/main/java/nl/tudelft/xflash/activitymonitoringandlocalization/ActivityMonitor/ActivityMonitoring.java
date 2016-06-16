@@ -32,6 +32,9 @@ public class ActivityMonitoring {
         if(getActivity() == Type.WALKING) { // always walking
             this.stepCount = 250 / (nasc.gettOpt()/2);
         }
+        else {
+            this.stepCount = 0;
+        }
         Log.d(this.getClass().getSimpleName(), "stepCount is " + this.stepCount);
         distanceModelZee.setStepCount(this.stepCount);
     }
@@ -54,10 +57,11 @@ public class ActivityMonitoring {
         Log.d(this.getClass().getSimpleName(), "stdevAcc is " + stdevAcc);
         Log.d(this.getClass().getSimpleName(), "maxNAC is " + maxNAC);
 
-        if(stdevAcc < 0.01) {
+        // malah kebalikannya paper
+        if(stdevAcc > 0.01) {
             state = Type.IDLE;
         }
-        if(maxNAC > 0.7) {
+        if(maxNAC < 0.7) {
             state = Type.WALKING;
         }
         return state;
@@ -77,21 +81,16 @@ public class ActivityMonitoring {
 
     // Update activity based on acc data
     public void update(ArrayList<Float> x, ArrayList<Float> y, ArrayList<Float> z) {
-        Log.d(this.getClass().getSimpleName(), "updating ActivityMonitoring");
         this.finished = false;
 
         nasc.setAccelerations(x, y, z);
-        Log.d(this.getClass().getSimpleName(), "calculate MaxNAC & Opt");
         nasc.calculateMaxNACandTopt(this.tmin, this.tmax);
 
-        Log.d(this.getClass().getSimpleName(), "update State");
         Type label = updateState();
         activityList.addType(label);
 
-        Log.d(this.getClass().getSimpleName(), "update stepCount");
         updateStepCount();
         updateStrideLength();
         this.finished = true;
-        Log.d(this.getClass().getSimpleName(), "finish ActivityMonitoring");
     }
 }
