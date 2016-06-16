@@ -9,13 +9,13 @@ public class Particle {
     private Location prevLoc, currLoc;
 
     public Particle(float x, float y){
-        currLoc = new Location(x,y);
-        prevLoc = new Location(x,y);
+        this.currLoc = new Location(x,y);
+        this.prevLoc = new Location(x,y);
     }
 
     public Particle(Location newLoc){
-        currLoc = new Location(newLoc);
-        prevLoc= new Location(newLoc);
+        this.currLoc = new Location(newLoc);
+        this.prevLoc= new Location(newLoc);
     }
 
     public Particle(Location currLoc, Location prevLoc){

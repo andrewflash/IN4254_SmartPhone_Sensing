@@ -1,5 +1,7 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityMonitoring;
@@ -8,6 +10,7 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorL
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.ParticleFilter.Particle;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.CompassGUI;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.LocalizationMap;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.VisitedPath;
 
 /**
  * Created by xflash on 29-5-16.
@@ -17,12 +20,12 @@ public class RunUpdate implements Runnable {
     private ArrayList<Float> accelX = new ArrayList<>();
     private ArrayList<Float> accelY = new ArrayList<>();
     private ArrayList<Float> accelZ = new ArrayList<>();
-    private ArrayList<Float> orienX = new ArrayList<>();
-    private ArrayList<Float> orienY = new ArrayList<>();
-    private ArrayList<Float> orienZ = new ArrayList<>();
+    private float angle;
 
     private ActivityMonitoring activityMonitoring;
     private LocalizationMonitor localizationMonitor;
+
+    private VisitedPath visitedPath;
 
     private LocalizationMap localizationMap;
     private CompassGUI compassGUI;
@@ -30,21 +33,19 @@ public class RunUpdate implements Runnable {
     private float dT;
 
     public RunUpdate(ArrayList<Float> accelX, ArrayList<Float> accelY, ArrayList<Float> accelZ,
-                       ArrayList<Float> orienX, ArrayList<Float> orienY, ArrayList<Float> orienZ,
-                       ActivityMonitoring acMon, LocalizationMonitor locMon,
+                       float angle, ActivityMonitoring acMon, LocalizationMonitor locMon,
                        LocalizationMap locMap, CompassGUI compGUI, float dT)
     {
         this.accelX = (ArrayList<Float>) accelX.clone();
         this.accelY = (ArrayList<Float>) accelY.clone();
         this.accelZ = (ArrayList<Float>) accelZ.clone();
-        this.orienX = (ArrayList<Float>) orienX.clone();
-        this.orienY = (ArrayList<Float>) orienY.clone();
-        this.orienZ = (ArrayList<Float>) orienZ.clone();
+        this.angle = angle;
         this.activityMonitoring = acMon;
         this.localizationMonitor = locMon;
         this.localizationMap = locMap;
         this.compassGUI = compGUI;
         this.dT = dT;
+        this.visitedPath = VisitedPath.getInstance();
     }
 
     @Override
@@ -55,7 +56,7 @@ public class RunUpdate implements Runnable {
         this.activityMonitoring.update(accelX, accelY, accelZ);
 
         // Update localization monitor
-        if (this.localizationMonitor.update(orienX,orienY,orienZ,dT)) {
+        if (this.localizationMonitor.update(angle,dT)) {
 
             // Check for convergence and change the color of particles
             final Location convergedLoc = localizationMonitor.particleConverged();
@@ -67,8 +68,7 @@ public class RunUpdate implements Runnable {
                         localizationMap.setConvLocation(convergeLocation);
                     }
                 });
-
-                //walkedPath.setPath(convergedLoc);
+                visitedPath.setPath(convergedLoc);
             };
 
             // Set values like particles and the direction

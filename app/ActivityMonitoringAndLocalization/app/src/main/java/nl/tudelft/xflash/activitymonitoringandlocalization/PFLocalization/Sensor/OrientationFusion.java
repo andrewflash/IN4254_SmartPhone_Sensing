@@ -52,8 +52,7 @@ public class OrientationFusion extends Observable implements ObserverSensor {
     private long timestamp;
     private boolean initState = true;
 
-    public static final int TIME_CONSTANT = 30;
-    //public static final int TIME_CONSTANT = 1000;
+    public static final int TIME_CONSTANT = 20; // 1/20 = 50 Hz
     public static final float FILTER_COEFFICIENT = 0.98f;
     private Timer fuseTimer = new Timer();
 
@@ -295,7 +294,8 @@ public class OrientationFusion extends Observable implements ObserverSensor {
 
     public float[] getOrientationResults() {
         if(gyroscope.available()){
-            return fusedOrientation;
+            return accMagOrientation;
+            //return fusedOrientation;
         } else {
             return accMagOrientation;
         }

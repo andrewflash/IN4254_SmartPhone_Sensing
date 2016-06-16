@@ -8,13 +8,11 @@ import java.util.ArrayList;
 public class ActivityType {
 
     private ArrayList<Type> activityList;
-    private ArrayList<Float> speedList;
 
     private static ActivityType singleton = null;
 
     private ActivityType(){
         this.activityList = new ArrayList<>();
-        this.speedList = new ArrayList<>();
     }
 
     public static ActivityType getInstance(){
@@ -26,7 +24,6 @@ public class ActivityType {
 
     public void empty(){
         activityList.clear();
-        speedList.clear();
     }
 
     public int size(){
@@ -50,13 +47,5 @@ public class ActivityType {
 
     public ArrayList<Type> getTypeList(){
         return (ArrayList<Type>)activityList.clone();
-    }
-
-    public void addSpeed(float speed){
-        speedList.add(speed);
-    }
-
-    public float getSpeed(int index){
-        return speedList.get(index);
     }
 }
