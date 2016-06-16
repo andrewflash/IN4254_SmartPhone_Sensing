@@ -143,6 +143,30 @@ public class ParticleFilter {
         }
     }
 
+    // Motion model for best particle
+    public void movementBest(float alpha, float time){
+        // Get instance of visited path
+        VisitedPath visitedPath = VisitedPath.getInstance();
+
+        for(Particle p : particles) {
+            mov = distanceModel.getDistance(alpha,time);
+            p.updateLocation(mov[0], mov[1]);
+            // Check particle collision with walls
+            if(!floorLayout.detectCollision(p) && floorLayout.isParticleInside(p)) {
+                dx.add(mov[0]);
+                dy.add(mov[1]);
+            }
+        }
+
+        // New movement (not yet converged), then update the path
+        visitedPath.setDx(ArrayOperations.mean(this.dx));
+        visitedPath.setDy(ArrayOperations.mean(this.dy));
+
+        // Clear dx and dy list
+        dx.clear();
+        dy.clear();
+    }
+
     // Initial Belief PF
     public void initialBelief(ArrayList<ArrayList<Integer>> rssiData){
         // Get instance of visited path
@@ -253,5 +277,11 @@ public class ParticleFilter {
     // Get movement of dX and dY
     public float[] getMovement() {
         return mov;
+    }
+
+    // Set converged Particle
+    public void setConvergedParticle(Location convLoc) {
+        particles.clear();
+        particles.add(new Particle(convLoc));
     }
 }

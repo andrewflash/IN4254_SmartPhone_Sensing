@@ -26,6 +26,8 @@ public class RunUpdate implements Runnable {
     private LocalizationMonitor localizationMonitor;
 
     private VisitedPath visitedPath;
+    private Location convergedLoc;
+    private boolean particleHasConverged;
 
     private LocalizationMap localizationMap;
     private CompassGUI compassGUI;
@@ -46,6 +48,7 @@ public class RunUpdate implements Runnable {
         this.compassGUI = compGUI;
         this.dT = dT;
         this.visitedPath = VisitedPath.getInstance();
+        this.particleHasConverged = false;
     }
 
     @Override
@@ -58,23 +61,37 @@ public class RunUpdate implements Runnable {
 
         // Update localization monitor
         if (this.localizationMonitor.update(angle,dT)) {
-
-            // Check for convergence and change the color of particles
-            final Location convergedLoc = localizationMonitor.particleConverged();
-            if(convergedLoc != null){
-                final Particle convergeLocation = localizationMonitor.forceConverge();
-                this.localizationMap.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        localizationMap.setConvLocation(convergeLocation);
-                    }
-                });
-                visitedPath.setPath(convergedLoc);
-            };
-
-            // Set values like particles and the direction
-            if(activityMonitoring.getActivity() == Type.WALKING){
-                this.localizationMap.setParticles(this.localizationMonitor.getParticles());
+            // Check for convergence of particles
+            if(!particleHasConverged) {
+                convergedLoc = localizationMonitor.particleConverged();
+                if (convergedLoc != null) {
+                    final Particle convergeParticle = localizationMonitor.forceConverge();
+                    this.localizationMap.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            localizationMap.setConvLocation(convergeParticle);
+                        }
+                    });
+                    visitedPath.setPath(convergeParticle.getCurrentLocation());
+                    localizationMonitor.setConvergedParticle(convergeParticle.getCurrentLocation());
+                    particleHasConverged = true;
+                    localizationMonitor.setParticleHasConverged(true);
+                }
+                // Set values of particles and direction
+                if(activityMonitoring.getActivity() == Type.WALKING){
+                    this.localizationMap.setParticles(this.localizationMonitor.getParticles());
+                }
+            } else {
+                // Set values like particles and the direction
+                if(activityMonitoring.getActivity() == Type.WALKING){
+                    final Particle convLoc = this.localizationMonitor.getParticles().get(0);
+                    this.localizationMap.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            localizationMap.setConvLocation(convLoc);
+                        }
+                    });
+                }
             }
 
             compassGUI.setAngle(localizationMonitor.getAngle());

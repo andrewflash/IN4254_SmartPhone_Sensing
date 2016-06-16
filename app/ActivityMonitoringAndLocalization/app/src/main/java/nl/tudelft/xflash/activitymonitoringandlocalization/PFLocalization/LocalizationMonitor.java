@@ -22,12 +22,14 @@ public class LocalizationMonitor {
 
     private float angle = 0.0f;
     private float[] mov = {0,0};
+    private boolean particleHasConverged;
 
     public LocalizationMonitor(Context context, FloorLayout floorLayout, int nParticles) {
         // Initialize floor layout
         this.floorLayout = floorLayout;
 
         activityList = ActivityType.getInstance();
+        particleHasConverged = false;
 
         // Initialize particle filter with nParticles.
         pf = new ParticleFilter(nParticles, floorLayout);
@@ -71,7 +73,11 @@ public class LocalizationMonitor {
 
             // If activity Type is WALKING, update the movement of particles
             if(activity == Type.WALKING) {
-                pf.movement(angle, time);
+                if(!particleHasConverged) {
+                    pf.movement(angle, time);
+                } else {
+                    pf.movementBest(angle, time);
+                }
                 mov = pf.getMovement();
             }
 
@@ -95,10 +101,23 @@ public class LocalizationMonitor {
 
     // Force particles become converged (1 best particle)
     public Particle forceConverge(){
-        VisitedPath visitedPath = VisitedPath.getInstance();
         Particle bestParticle = pf.bestParticle();
-        visitedPath.setPath(bestParticle.getCurrentLocation());
         return bestParticle;
+    }
+
+    // Set converged particle (1 best particle)
+    public void setConvergedParticle(Location convLoc) {
+        pf.setConvergedParticle(convLoc);
+    }
+
+    // Set particle has converged flag
+    public void setParticleHasConverged(boolean flag) {
+        particleHasConverged = flag;
+    }
+
+    // Get flag particle has converged
+    public boolean isParticleHasConverged() {
+        return particleHasConverged;
     }
 
     // Get movement distance
