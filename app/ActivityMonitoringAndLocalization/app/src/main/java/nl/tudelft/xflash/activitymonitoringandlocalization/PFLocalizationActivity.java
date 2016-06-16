@@ -419,6 +419,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             @Override
             public void onClick(View v) {
                 wifiManager.startScan();
+                localizationMonitor.initialBelief(wifi.getRSSI());
                 wifi.getObservable().mySetChanged();
             }
         });
