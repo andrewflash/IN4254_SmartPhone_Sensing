@@ -27,6 +27,7 @@ import java.util.concurrent.Executors;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityMonitoring;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityType;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.DistanceModelZee;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.LocalizationMonitor;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.Sensor.OrientationFusion;
@@ -109,6 +110,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     // Update View
     public Handler mHandler;
     DecimalFormat d = new DecimalFormat("#.##");
+    DistanceModelZee distanceModelZee;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,7 +124,8 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         floorLayout.generateLayout();
 
         // Monitoring (monitor activity and localization
-        activityMonitoring = new ActivityMonitoring(getApplicationContext());
+        distanceModelZee = new DistanceModelZee(floorLayout);
+        activityMonitoring = new ActivityMonitoring(getApplicationContext(), distanceModelZee);
         localizationMonitor = new LocalizationMonitor(getApplicationContext(), floorLayout, N_PARTICLES);
 
         // Get activity type
