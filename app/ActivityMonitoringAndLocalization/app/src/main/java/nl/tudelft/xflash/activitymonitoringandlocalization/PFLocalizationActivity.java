@@ -4,11 +4,13 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.graphics.Point;
+import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.widget.Button;
@@ -23,18 +25,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityMonitoring;
+import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityType;
+import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.LocalizationMonitor;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.Sensor.OrientationFusion;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.RunUpdate;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.CompassGUI;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.LocalizationMap;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.VisitedPath;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.Accelerometer;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.ObserverSensor;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.RotationSensor;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.WiFi;
 
 /**
  * Created by xflash on 27-5-16.
  */
-public class PFLocalizationActivity extends AppCompatActivity implements Observer {
+public class PFLocalizationActivity extends AppCompatActivity implements Observer, ObserverSensor {
 
     // Layout
     private LocalizationMap localizationView;
@@ -48,7 +56,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
 
     // Sensors
     private SensorManager sensorManager;
-    private OrientationFusion orientation;
+    //private OrientationFusion orientation;
+    private RotationSensor orientation;
+    private Accelerometer accelerometer;
     private WifiManager wifiManager;
     private WiFi wifi;
 
@@ -56,14 +66,14 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private ArrayList<Float> accelX;
     private ArrayList<Float> accelY;
     private ArrayList<Float> accelZ;
-    private ArrayList<Float> orienX;
-    private ArrayList<Float> orienY;
-    private ArrayList<Float> orienZ;
     private float[] orienAvg = {0,0,0};
+    private float angle;
 
     // Windows size of accelerometer and orientation sensor
-    public int WINDOW_SIZE_ACC;
-    public int WINDOW_SIZE_ORIENTATION;
+    public static final int SAMPLING_RATE_ACC = 20000; // 50 Hz (1/20000 us)
+    public static final int SAMPLING_RATE_ORIENTATION = 20000; // 50 Hz (1/20000 us)
+    public static final int WINDOW_SIZE_ACC = 20;
+    public static final int WINDOW_SIZE_ORIENTATION = 5;
 
     // Timing for calculating window
     private long startTime;
@@ -74,6 +84,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     // Monitoring
     private ActivityMonitoring activityMonitoring;
     private LocalizationMonitor localizationMonitor;
+
+    // Activity
+    private ActivityType activityType;
 
     // Buttons
     private Button btnInitialBeliefPA,btnInitialBeliefBayes,btnSenseBayes;
@@ -101,22 +114,19 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize Window Size
-        WINDOW_SIZE_ACC = 20;
-        WINDOW_SIZE_ORIENTATION = 20;
-
+        // Executor
         executor = Executors.newSingleThreadExecutor();
 
         // Create floor layout
         floorLayout = new FloorLayout(getResources().openRawResource(R.raw.floor9th));
         floorLayout.generateLayout();
 
-        // Monitoring
+        // Monitoring (monitor activity and localization
         activityMonitoring = new ActivityMonitoring(getApplicationContext());
         localizationMonitor = new LocalizationMonitor(getApplicationContext(), floorLayout, N_PARTICLES);
 
-        // Init sensors
-        initSensors();
+        // Get activity type
+        activityType = ActivityType.getInstance();
 
         // Init view
         initView();
@@ -124,13 +134,18 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         // Init buttons
         initButtons();
 
+        // Init Sensors
+        initSensors();
+
+        // Init Wifi
+        //initWifi();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         // restore the sensor listeners when user resumes the application.
-        orientation.initListeners();
+        //orientation.initListeners();
     }
 
     @Override
@@ -143,10 +158,12 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        wifi.clear();
-        orientation.unregisterListeners();
         try {
+            //orientation.unregisterListeners();
+            accelerometer.unregister();
+            orientation.unregister();
             unregisterReceiver(wifi);
+            wifi.clear();
         }
         catch (Exception e){
         }
@@ -159,68 +176,126 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         //orientation.unregisterListeners();
     }
 
+    // ObserverSensor
+    @Override
+    public void update(int SensorType) {
+        if(this.accelX.size() == 0){
+            startTime = System.currentTimeMillis();
+        }
+
+        if(SensorType == Sensor.TYPE_ACCELEROMETER) {
+            // Collect accelero data as large as WINDOW SIZE
+            if(accelX.size() <= WINDOW_SIZE_ACC) {
+                this.accelX.add(Accelerometer.getGravity()[0]);
+                this.accelY.add(Accelerometer.getGravity()[1]);
+                this.accelZ.add(Accelerometer.getGravity()[2]);
+            }
+        } else if(SensorType == Sensor.TYPE_ROTATION_VECTOR) {
+            angle = RotationSensor.getAngleRad();
+            System.arraycopy(RotationSensor.getOrientationDeg(),0,orienAvg,0,3);
+        }
+
+        // Update localization after collecting as much data as WINDOW SIZE
+        if(this.accelX.size() >= WINDOW_SIZE_ACC) {
+            float dT = (float)(Double.valueOf(System.currentTimeMillis() - startTime)/1000d);
+
+            // Create runnable
+            RunUpdate runUpdate = new RunUpdate(accelX,accelY,accelZ,angle,
+                    activityMonitoring,localizationMonitor,localizationView, compassGUI, dT);
+
+            // Add runnable to queue
+            executor.submit(runUpdate);
+
+            // Scan Wifi while user is walking
+            if(activityType.getLast() == Type.WALKING) {
+                //wifiManager.startScan();
+            }
+
+            // Update View in GUI
+            mHandler.post(updateInfoViewTask);
+
+            // Clear sensor data
+            accelX.clear();
+            accelY.clear();
+            accelZ.clear();
+        }
+    }
+
+    // Observer
     @Override
     public void update(Observable observable, Object o) {
-        if(observable == orientation) {
-            if(this.accelX.size() == 0 && this.orienX.size() == 0){
-                startTime = System.currentTimeMillis();
-            }
-
-            if(accelX.size() <= WINDOW_SIZE_ACC) {
-                this.accelX.add(orientation.getAccel()[0]);
-                this.accelY.add(orientation.getAccel()[1]);
-                this.accelZ.add(orientation.getAccel()[2]);
-            }
-
-            if(orienX.size() <= WINDOW_SIZE_ORIENTATION) {
-                this.orienX.add(orientation.getOrientationResults()[0]);
-                this.orienY.add(orientation.getOrientationResults()[1]);
-                this.orienZ.add(orientation.getOrientationResults()[2]);
-                orienAvg[0] += orientation.getOrientationResults()[0]/WINDOW_SIZE_ORIENTATION;
-                orienAvg[1] += orientation.getOrientationResults()[1]/WINDOW_SIZE_ORIENTATION;
-                orienAvg[2] += orientation.getOrientationResults()[2]/WINDOW_SIZE_ORIENTATION;
-            }
-
-            if(this.accelX.size() >= WINDOW_SIZE_ACC && this.orienX.size() >= WINDOW_SIZE_ORIENTATION) {
-                float dT = (float)(Double.valueOf(System.currentTimeMillis() - startTime)/1000d);
-
-                // Create runnable
-                RunUpdate runUpdate = new RunUpdate(accelX,accelY,accelZ,orienX,orienY,orienZ,
-                        activityMonitoring,localizationMonitor,localizationView, compassGUI, dT);
-
-                // Add runnable to queue
-                executor.submit(runUpdate);
-
-                // Update View in GUI
-                mHandler.post(updateInfoViewTask);
-
-                // Clear sensor data
-                accelX.clear();
-                accelY.clear();
-                accelZ.clear();
-                orienX.clear();
-                orienY.clear();
-                orienZ.clear();
-            }
-
-        } else if(observable == wifi.getObservable()) {
-            localizationMonitor.initialBelief(wifi.getRSSI());
-            localizationView.setParticles(localizationMonitor.getParticles());
-            localizationView.reset();
-            localizationView.post(new Runnable() {
-                @Override
-                public void run() {
-                    localizationView.invalidate();
-                }
-            });
-            compassGUI.post(new Runnable() {
-                @Override
-                public void run() {
-                    compassGUI.invalidate();
-                }
-            });
-            btnInitialBeliefPA.setText("INITIAL BELIEF");
-        }
+        Log.d(this.getClass().getSimpleName(),"Receive WiFi update");
+//        // If we receive update of orientation data
+//        if(observable == orientation) {
+//            if(this.accelX.size() == 0 && this.orienX.size() == 0){
+//                startTime = System.currentTimeMillis();
+//            }
+//
+//            // Collect accelero data as large as WINDOW SIZE
+//            if(accelX.size() <= WINDOW_SIZE_ACC) {
+//                this.accelX.add(orientation.getAccel()[0]);
+//                this.accelY.add(orientation.getAccel()[1]);
+//                this.accelZ.add(orientation.getAccel()[2]);
+//            }
+//
+//            // Collect as much orientation data as WINDOW SIZE
+//            if(orienX.size() <= WINDOW_SIZE_ORIENTATION) {
+//                this.orienX.add(orientation.getOrientationResults()[0]);
+//                this.orienY.add(orientation.getOrientationResults()[1]);
+//                this.orienZ.add(orientation.getOrientationResults()[2]);
+//            }
+//
+//            orienAvg[0] = orientation.getOrientationResults()[0];///WINDOW_SIZE_ORIENTATION;
+//            orienAvg[1] = orientation.getOrientationResults()[1];///WINDOW_SIZE_ORIENTATION;
+//            or    ienAvg[2] = orientation.getOrientationResults()[2];///WINDOW_SIZE_ORIENTATION;
+//
+//            // Update localization after collecting as much data as WINDOW SIZE
+//            if(this.accelX.size() >= WINDOW_SIZE_ACC && this.orienX.size() >= WINDOW_SIZE_ORIENTATION) {
+//                float dT = (float)(Double.valueOf(System.currentTimeMillis() - startTime)/1000d);
+//
+//                // Create runnable
+//                RunUpdate runUpdate = new RunUpdate(accelX,accelY,accelZ,orienX,orienY,orienZ,
+//                        activityMonitoring,localizationMonitor,localizationView, compassGUI, dT);
+//
+//                // Add runnable to queue
+//                executor.submit(runUpdate);
+//
+//                // Scan Wifi while user is walking
+//                if(activityType.getLast() == Type.WALKING) {
+//                    wifiManager.startScan();
+//                }
+//
+//                // Update View in GUI
+//                mHandler.post(updateInfoViewTask);
+//
+//                // Clear sensor data
+//                accelX.clear();
+//                accelY.clear();
+//                accelZ.clear();
+//                orienX.clear();
+//                orienY.clear();
+//                orienZ.clear();
+//            }
+//        // If we receive update of wifi data
+//        } else {//if(observable == wifi.getObservable()){
+//            Log.d(this.getClass().getSimpleName(),"receiveWifi");
+//            localizationMonitor.initialBelief(wifi.getRSSI());
+//            localizationView.setParticles(localizationMonitor.getParticles());
+//            localizationView.reset();
+//            localizationView.post(new Runnable() {
+//                @Override
+//                public void run() {
+//                    localizationView.invalidate();
+//                }
+//            });
+//            compassGUI.post(new Runnable() {
+//                @Override
+//                public void run() {
+//                    compassGUI.invalidate();
+//                }
+//            });
+//            btnInitialBeliefPA.setText("INITIAL BELIEF PA");
+//        }
     }
 
     public void initView() {
@@ -263,28 +338,38 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         txtTotalStep = (TextView)findViewById(R.id.txtTotalStep);
     }
 
-    private void initSensors(){
+    private void initSensors() {
         // Init sensors data
         accelX = new ArrayList<>();
         accelY = new ArrayList<>();
         accelZ = new ArrayList<>();
 
-        orienX= new ArrayList<>();
-        orienY = new ArrayList<>();
-        orienZ = new ArrayList<>();
+        // Init angle
+        angle = 0f;
 
         // Manage sensors
-        sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
-        orientation = new OrientationFusion(sensorManager);
-        orientation.addObserver(this);
-        orientation.initListeners();
+        // Accelerometer
+        accelerometer = new Accelerometer(sensorManager);
+        accelerometer.attach(this);
 
+        // Orientation
+        //orientation = new OrientationFusion(sensorManager);
+        orientation = new RotationSensor(sensorManager);
+        orientation.attach(this);
+
+        //orientation.addObserver(this);
+        //orientation.initListeners();
+    }
+
+    private void initWifi() {
         //Init wifi
         wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        if(!wifiManager.isWifiEnabled()){
+        if (!wifiManager.isWifiEnabled()) {
             wifiManager.setWifiEnabled(true);
         }
+        // Create WiFi observer
         wifi = new WiFi(wifiManager);
         registerReceiver(wifi, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         wifi.getObservable().addObserver(this);
@@ -296,15 +381,22 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             @Override
             public void onClick(View v) {
                 if(!initInitialBeliefPA) {
-                    if (wifi.getWifiPoints().isEmpty()) { //|| WalkedPath.getInstance().getPathX().isEmpty()){
+                    // Initial Belief start
+                    accelerometer.register(SAMPLING_RATE_ACC);
+                    orientation.register(SAMPLING_RATE_ORIENTATION);
+
+                    if (/*wifi.getWifiPoints().isEmpty() ||*/ VisitedPath.getInstance().getPathX().isEmpty()
+                            || VisitedPath.getInstance().getPathY().isEmpty()){
                         localizationMonitor.reset();
+                        btnInitialBeliefPA.setText("RUNNING INITIAL");
                     } else {
-                        registerReceiver(wifi, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-                        wifi.getObservable().mySetChanged();
-                        wifiManager.startScan();
+                        //registerReceiver(wifi, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+                        //wifi.getObservable().mySetChanged();
+                        //wifiManager.startScan();
                         btnInitialBeliefPA.setText("Scanning...");
-                        initInitialBeliefPA = true;
                     }
+
+                    initInitialBeliefPA = true;
                     localizationView.setParticles(localizationMonitor.getParticles());
                     localizationView.reset();
                     localizationView.post(new Runnable() {
@@ -320,7 +412,10 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                         }
                     });
                 } else {
-                    orientation.unregisterListeners();
+                    // Initial Belief stop
+                    //orientation.unregisterListeners();
+                    accelerometer.unregister();
+                    orientation.unregister();
                     try {
                         unregisterReceiver(wifi);
                     }
@@ -335,6 +430,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         btnInitialBeliefBayes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                wifi.getObservable().mySetChanged();
 //                accelerometer.unregister();
 //                magnetometer.unregister();
 //                try {
@@ -357,12 +453,12 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     }
 
     public void updateInfoView() {
-        txtAzimuth.setText(d.format(orienAvg[0] * 180/Math.PI) + '\u00B0');
-        txtPitch.setText(d.format(orienAvg[1] * 180/Math.PI)+ '\u00B0');
-        txtRoll.setText(d.format(orienAvg[2] * 180/Math.PI) + '\u00B0');
-        txtAccelX.setText(d.format(orientation.getAccel()[0]) + " m/s" + '\u00B2');
-        txtAccelY.setText(d.format(orientation.getAccel()[1]) + " m/s" + '\u00B2');
-        txtAccelZ.setText(d.format(orientation.getAccel()[2]) + " m/s" + '\u00B2');
+        txtAzimuth.setText(d.format(orienAvg[0]) + '\u00B0');
+        txtPitch.setText(d.format(orienAvg[1]) + '\u00B0');
+        txtRoll.setText(d.format(orienAvg[2]) + '\u00B0');
+        txtAccelX.setText(d.format(Accelerometer.getGravity()[0]) + " m/s" + '\u00B2');
+        txtAccelY.setText(d.format(Accelerometer.getGravity()[1]) + " m/s" + '\u00B2');
+        txtAccelZ.setText(d.format(Accelerometer.getGravity()[2]) + " m/s" + '\u00B2');
         txtdX.setText(d.format(localizationMonitor.getMovement()[0]) + " m");
         txtdY.setText(d.format(localizationMonitor.getMovement()[1]) + " m");
         txtActivityPF.setText(activityMonitoring.getActivity().toString());

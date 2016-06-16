@@ -9,6 +9,7 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorL
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.Location;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.ParticleFilter.Particle;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.ParticleFilter.ParticleFilter;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.VisitedPath;
 
 /**
  * Created by xflash on 29-5-16.
@@ -18,7 +19,6 @@ public class LocalizationMonitor {
     private ActivityType activityList;
     private ParticleFilter pf;
     private FloorLayout floorLayout;
-    //private WalkedPath walkedPath;
 
     private float angle = 0.0f;
     private float[] mov = {0,0};
@@ -33,41 +33,41 @@ public class LocalizationMonitor {
         pf = new ParticleFilter(nParticles, floorLayout);
     }
 
+    // Execute initial belief
     public void initialBelief(ArrayList<ArrayList<Integer>> rssiData){
         pf.initialBelief(rssiData);
         activityList.empty();
     }
 
+    // Reset localization
     public void reset(){
-        //WalkedPath.getInstance().reset();
+        VisitedPath.getInstance().reset();
         pf.resetParticleFilter();
         activityList.empty();
     }
 
+    // Get floor layout
     public FloorLayout getFloorLayout(){
         return this.floorLayout;
     }
 
+    // Get particles list
     public ArrayList<Particle> getParticles(){
         return pf.getParticles();
     }
 
+    // Get direction
     public float getAngle(){
         return this.angle;
     }
 
-    public boolean update(ArrayList<Float> orientationX, ArrayList<Float> orientationY,
-                          ArrayList<Float> orientationZ, float time){
+    // Update the localization based on orientation data and timestamp
+    public boolean update(float angle, float time){
 
         Type activity = activityList.getType(activityList.size() - 1);
 
         if (activity == Type.WALKING || activity == Type.IDLE ) {
-            angle = 0f;
-            // Average angle per window size
-            for (int i = 0; i < orientationX.size(); i++) {
-                float[] orientation = {orientationX.get(i), orientationY.get(i), orientationZ.get(i)};
-                angle += orientation[0]/orientationX.size();
-            }
+            this.angle = angle;
 
             // If activity Type is WALKING, update the movement of particles
             if(activity == Type.WALKING) {
@@ -88,17 +88,20 @@ public class LocalizationMonitor {
         return false;
     }
 
+    // Set radius of convergence = 3
     public Location particleConverged(){
         return pf.converged(3f);
     }
 
+    // Force particles become converged (1 best particle)
     public Particle forceConverge(){
-        //WalkedPath walkedPath = WalkedPath.getInstance();
+        VisitedPath visitedPath = VisitedPath.getInstance();
         Particle bestParticle = pf.bestParticle();
-        //walkedPath.setPath(bestParticle.getCurrentLocation());
+        visitedPath.setPath(bestParticle.getCurrentLocation());
         return bestParticle;
     }
 
+    // Get movement distance
     public float[] getMovement() {
         return mov;
     }

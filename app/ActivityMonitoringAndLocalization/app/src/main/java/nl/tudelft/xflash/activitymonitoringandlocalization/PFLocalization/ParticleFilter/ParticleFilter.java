@@ -9,6 +9,7 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.Misc.ArrayOperations;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.MotionModel.DistanceModel;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.Location;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.VisitedPath;
 
 /**
  * Created by xflash on 29-5-16.
@@ -56,6 +57,11 @@ public class ParticleFilter {
         this.generateParticles(N_PARTICLES);
     }
 
+    // Clear particles
+    public void clearParticles(){
+        particles.clear();
+    }
+
     public ArrayList<Particle> getParticles(){
         return this.particles;
     }
@@ -76,7 +82,6 @@ public class ParticleFilter {
 
         // Check particle collision with walls
         for (Particle p : dupParticles){
-            Log.d(getClass().getSimpleName(),"Alpha: " + alpha);
             mov = distanceModel.getDistance(alpha,time);
             p.updateLocation(mov[0], mov[1]);
             if(floorLayout.detectCollision(p)){
@@ -91,20 +96,22 @@ public class ParticleFilter {
             }
         }
 
-//        WalkedPath walkedPath = WalkedPath.getInstance();
+        // Get instance of visited path
+        VisitedPath visitedPath = VisitedPath.getInstance();
 
-        // If 90% of particles have died than don't update the particleList
+        // If 95% of particles have died than don't update the particleList
         if(collisionParticles.size() > dupParticles.size() * 0.9f){
-            // New movement so update the walkedPath.
-            //walkedPath.setDx(0f);
-            //walkedPath.setDy(0f);
-            return ;
+            // As it converge, we do not need to add movement dx and dy
+            visitedPath.setDx(0f);
+            visitedPath.setDy(0f);
+            return;
         }
 
-        // New movement so update the walkedPath.
-//        walkedPath.setDx(ArrayOperations.mean(this.dx));
-//        walkedPath.setDy(ArrayOperations.mean(this.dy));
+        // New movement (not yet converged), then update the path
+        visitedPath.setDx(ArrayOperations.mean(this.dx));
+        visitedPath.setDy(ArrayOperations.mean(this.dy));
 
+        // Clear dx and dy list
         dx.clear();
         dy.clear();
 
@@ -134,52 +141,55 @@ public class ParticleFilter {
             particles.add(new Particle(particleTemp.get(index).getPreviousLocation().getX(),
                     particleTemp.get(index).getPreviousLocation().getY()));
         }
-
     }
 
     // Initial Belief PF
     public void initialBelief(ArrayList<ArrayList<Integer>> rssiData){
-//        ArrayList<Float> walkedPathX = WalkedPath.getInstance().getPathX();
-//        ArrayList<Float> walkedPathY = WalkedPath.getInstance().getPathY();
-//        //Log.i("RSSI TEST", "pathsize " + walkedPathX.size() + " rssiSize" + rssiData.size());
-//        //Log.i("RSSI TEST", " " + rssiData);
-//        if (walkedPathX.isEmpty() || rssiData.isEmpty())
-//            return;
-//
-//        ArrayList<Double> distances = new ArrayList<>();
-//        ArrayList<Integer> last = rssiData.get(rssiData.size()-1);
-//        rssiData.remove(last);
-//
-//        //Calculate distances
-//        for (ArrayList<Integer> rssiPoint : rssiData){
-//            double dist = 0 ;
-//            for (int i = 0; i < rssiPoint.size() ; i++) {
-//                dist += rssiPoint.get(i) - last.get(i);
-//                dist = Math.abs(dist);
-//            }
-//            distances.add(dist);
-//        }
-//
-//        Log.i("RSSI TEST", " "+ distances);
-//
-//        //Find best RSSI point
-//        int besti = ArrayOperations.indexFirstMinimumFrom(0, distances);
-//        float x0 = walkedPathX.get(walkedPathX.size()-besti-1);
-//        float y0 = walkedPathY.get(walkedPathY.size()-besti-1);
-//
-//        particles.clear();
-//
-//        int i = 0;
-//        float sigma = 3f;   // stdev for generating particle
-//
-//        while(i < N_PARTICLES) {
-//            Particle p = new Particle(x0 + (float) rand.nextGaussian() * sigma, y0 + (float) rand.nextGaussian() * sigma);
-//            // Check if the particle is inside floor plan.
-//            if (floorLayout.isParticleInside(p)) {
-//                particles.add(p);
-//                i++;
-//            }
-//        }
+        // Get instance of visited path
+        ArrayList<Float> visitedPathX = VisitedPath.getInstance().getPathX();
+        ArrayList<Float> visitedPathY = VisitedPath.getInstance().getPathY();
+
+        Log.i("RSSI TEST", "pathsize " + visitedPathX.size() + " rssiSize" + rssiData.size());
+        Log.i("RSSI TEST", " " + rssiData);
+        // If visited path is empty and no rssiData yet, return
+        if (visitedPathX.isEmpty() || visitedPathY.isEmpty() || rssiData.isEmpty())
+            return;
+
+        // RSSI Wifi distances
+        ArrayList<Double> rssiDistances = new ArrayList<>();
+        ArrayList<Integer> lastRssi = rssiData.get(rssiData.size()-1);
+        rssiData.remove(lastRssi);
+
+        // Calculate RSSI distances
+        for (ArrayList<Integer> rssiPoint : rssiData){
+            double dist = 0 ;
+            for (int i = 0; i < rssiPoint.size() ; i++) {
+                dist += rssiPoint.get(i) - lastRssi.get(i);
+                dist = Math.abs(dist);
+            }
+            rssiDistances.add(dist);
+        }
+
+        Log.i("RSSI TEST", " "+ rssiDistances);
+
+        // Find best RSSI point
+        int bestRssiIndex = ArrayOperations.indexFirstMinimumFrom(0, rssiDistances);
+        float x0 = visitedPathX.get(visitedPathX.size()-bestRssiIndex-1);
+        float y0 = visitedPathY.get(visitedPathY.size()-bestRssiIndex-1);
+
+        particles.clear();
+
+        int i = 0;
+        float sigma = 3f;   // stdev for generating particle
+
+        while(i < N_PARTICLES) {
+            Particle p = new Particle(x0 + (float) rand.nextGaussian() * sigma, y0 + (float) rand.nextGaussian() * sigma);
+            // Check if the particle is inside floor plan.
+            if (floorLayout.isParticleInside(p)) {
+                particles.add(p);
+                i++;
+            }
+        }
     }
 
     // Return converged particle location, approximate using average and stdev
@@ -194,7 +204,7 @@ public class ParticleFilter {
         }
         for (Particle p : particles){
             xstdev += (p.getCurrentLocation().getX()-xavg)*(p.getCurrentLocation().getX()-xavg);
-            ystdev += (p.getCurrentLocation().getY()-xavg)*(p.getCurrentLocation().getY()-xavg);
+            ystdev += (p.getCurrentLocation().getY()-yavg)*(p.getCurrentLocation().getY()-yavg);
         }
 
         // Normalize
@@ -222,14 +232,17 @@ public class ParticleFilter {
             bestParticleList.add(new Particle(p.getCurrentLocation(), p.getPreviousLocation()));
         }
 
+        // Check distance for each particle
         for (int i = 0; i < bestParticleList.size(); i++) {
             for (int j = 0; j < bestParticleList.size(); j++) {
+                // if distance between two particle is less than 2, then
                 if (bestParticleList.get(i).distance(bestParticleList.get(j)) < 2f){
                     count[i]++;
                 }
             }
         }
 
+        // Clear best particle list
         bestParticleList.clear();
 
         //scorePercentate = (count[ArrayOperations.indexFirstMaximumFromInt(0,count)]*100)/(float)N_INIT;

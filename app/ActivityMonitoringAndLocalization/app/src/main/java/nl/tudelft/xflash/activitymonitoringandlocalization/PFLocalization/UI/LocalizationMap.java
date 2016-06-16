@@ -28,6 +28,7 @@ public class LocalizationMap extends View {
     private float offsetX;
     private float offsetY;
     private float width, height;
+    private VisitedPath visitedPath;
 
     private Matrix scaleMatrix;
     private Paint particlePaint, wallPaint, convPaint;
@@ -40,6 +41,7 @@ public class LocalizationMap extends View {
         this.height = height;
 
         this.particles = new CopyOnWriteArrayList<Particle>(particles);
+        this.visitedPath = VisitedPath.getInstance();
 
         // Create wall, initialize scaling matrix
         scaleMatrix = new Matrix();
@@ -56,9 +58,9 @@ public class LocalizationMap extends View {
 
         // Offset of X and Y
         this.wall.offset(offsetX, offsetY);
+        visitedPath.initTransform(scaleMatrix, offsetX, offsetY);
 
-        //walkedPath.initTransform(scaleMatrix, offSetX, offSetY);
-
+        // Paint
         particlePaint = new Paint();
         particlePaint.setStrokeWidth(4);
         particlePaint.setColor(Color.RED);
