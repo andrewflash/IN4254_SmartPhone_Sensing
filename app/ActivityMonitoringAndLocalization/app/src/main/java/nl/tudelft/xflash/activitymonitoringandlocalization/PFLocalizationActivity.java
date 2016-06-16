@@ -66,7 +66,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private ArrayList<Float> accelX;
     private ArrayList<Float> accelY;
     private ArrayList<Float> accelZ;
-    private float[] orienAvg = {0,0,0};
     private float angle;
 
     // Windows size of accelerometer and orientation sensor
@@ -74,6 +73,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     public static final int SAMPLING_RATE_ORIENTATION = 20000; // 50 Hz (1/20000 us)
     public static final int WINDOW_SIZE_ACC = 20;
     public static final int WINDOW_SIZE_ORIENTATION = 5;
+
+    // Particle converged flag
+    private boolean isParticleConverged;
 
     // Timing for calculating window
     private long startTime;
@@ -121,6 +123,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         floorLayout = new FloorLayout(getResources().openRawResource(R.raw.floor9th));
         floorLayout.generateLayout();
 
+        // Initialize particle converged flag
+        isParticleConverged = false;
+
         // Monitoring (monitor activity and localization
         activityMonitoring = new ActivityMonitoring(getApplicationContext());
         localizationMonitor = new LocalizationMonitor(getApplicationContext(), floorLayout, N_PARTICLES);
@@ -138,7 +143,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         initSensors();
 
         // Init Wifi
-        initWifi();
+        //initWifi();
     }
 
     @Override
@@ -192,7 +197,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             }
         } else if(SensorType == Sensor.TYPE_ROTATION_VECTOR) {
             angle = RotationSensor.getAngleRad();
-            System.arraycopy(RotationSensor.getOrientationDeg(),0,orienAvg,0,3);
         }
 
         // Update localization after collecting as much data as WINDOW SIZE
@@ -213,6 +217,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
 
             // Update View in GUI
             mHandler.post(updateInfoViewTask);
+
+            // Update particle converged flag
+            isParticleConverged = localizationMonitor.isParticleHasConverged();
 
             // Clear sensor data
             accelX.clear();
@@ -437,16 +444,20 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     }
 
     public void updateInfoView() {
-        txtAzimuth.setText(d.format(orienAvg[0]) + '\u00B0');
-        txtPitch.setText(d.format(orienAvg[1]) + '\u00B0');
-        txtRoll.setText(d.format(orienAvg[2]) + '\u00B0');
-        txtAccelX.setText(d.format(Accelerometer.getGravity()[0]) + " m/s" + '\u00B2');
-        txtAccelY.setText(d.format(Accelerometer.getGravity()[1]) + " m/s" + '\u00B2');
-        txtAccelZ.setText(d.format(Accelerometer.getGravity()[2]) + " m/s" + '\u00B2');
-        txtdX.setText(d.format(localizationMonitor.getMovement()[0]) + " m");
-        txtdY.setText(d.format(localizationMonitor.getMovement()[1]) + " m");
+ //       txtAzimuth.setText(d.format(orienAvg[0]) + '\u00B0');
+ //       txtPitch.setText(d.format(orienAvg[1]) + '\u00B0');
+ //       txtRoll.setText(d.format(orienAvg[2]) + '\u00B0');
+ //       txtAccelX.setText(d.format(Accelerometer.getGravity()[0]) + " m/s" + '\u00B2');
+//        txtAccelY.setText(d.format(Accelerometer.getGravity()[1]) + " m/s" + '\u00B2');
+//        txtAccelZ.setText(d.format(Accelerometer.getGravity()[2]) + " m/s" + '\u00B2');
+//        txtdX.setText(d.format(localizationMonitor.getMovement()[0]) + " m");
+//        txtdY.setText(d.format(localizationMonitor.getMovement()[1]) + " m");
         txtActivityPF.setText(activityMonitoring.getActivity().toString());
-        orienAvg[0] = 0; orienAvg[1] = 0; orienAvg[2] = 0;
+
+        if(isParticleConverged) {
+            initInitialBeliefPA = false;
+            btnInitialBeliefPA.setText("INITIAL BELIEF PA");
+        }
     }
 
     private Runnable updateInfoViewTask = new Runnable() {
