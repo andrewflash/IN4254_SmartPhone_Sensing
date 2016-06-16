@@ -109,18 +109,17 @@ public class LocalizationMap extends View {
         // Draw walls
         canvas.drawPath(wall, wallPaint);
 
-        // Draw particles
-        for(Particle p : this.particles) {
-            canvas.drawPoint(p.getCurrentLocation().getX()*scale +
-                    offsetX, p.getCurrentLocation().getY()*scale + offsetY, particlePaint);
-        }
-
         // Draw converged particle
         if(convParticle != null){
             canvas.drawPoint(convParticle.getCurrentLocation().getX()*scale +
                     offsetX, convParticle.getCurrentLocation().getY()*scale + offsetY,
                     convPaint);
+        } else {
+            // Draw particles
+            for(Particle p : this.particles) {
+                canvas.drawPoint(p.getCurrentLocation().getX()*scale +
+                        offsetX, p.getCurrentLocation().getY()*scale + offsetY, particlePaint);
+            }
         }
-
     }
 }

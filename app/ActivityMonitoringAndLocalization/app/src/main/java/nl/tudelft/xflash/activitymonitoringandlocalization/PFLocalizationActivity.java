@@ -138,7 +138,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         initSensors();
 
         // Init Wifi
-        //initWifi();
+        initWifi();
     }
 
     @Override
@@ -385,18 +385,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     accelerometer.register(SAMPLING_RATE_ACC);
                     orientation.register(SAMPLING_RATE_ORIENTATION);
 
-                    if (/*wifi.getWifiPoints().isEmpty() ||*/ VisitedPath.getInstance().getPathX().isEmpty()
-                            || VisitedPath.getInstance().getPathY().isEmpty()){
-                        localizationMonitor.reset();
-                        btnInitialBeliefPA.setText("RUNNING INITIAL");
-                    } else {
-                        //registerReceiver(wifi, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-                        //wifi.getObservable().mySetChanged();
-                        //wifiManager.startScan();
-                        btnInitialBeliefPA.setText("Scanning...");
-                    }
+                    localizationMonitor.reset();
+                    btnInitialBeliefPA.setText("STOP INITIAL BELIEF");
 
-                    initInitialBeliefPA = true;
                     localizationView.setParticles(localizationMonitor.getParticles());
                     localizationView.reset();
                     localizationView.post(new Runnable() {
@@ -411,45 +402,37 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                             compassGUI.invalidate();
                         }
                     });
+                    initInitialBeliefPA = true;
                 } else {
                     // Initial Belief stop
-                    //orientation.unregisterListeners();
                     accelerometer.unregister();
                     orientation.unregister();
-                    try {
-                        unregisterReceiver(wifi);
-                    }
-                    catch (Exception e){}
                     initInitialBeliefPA = false;
                     btnInitialBeliefPA.setText("INITIAL BELIEF PA");
                 }
             }
         });
 
+        // Initial Belief Bayes
         btnInitialBeliefBayes = (Button) findViewById(R.id.btnInitialBeliefBayes);
         btnInitialBeliefBayes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                wifiManager.startScan();
                 wifi.getObservable().mySetChanged();
-//                accelerometer.unregister();
-//                magnetometer.unregister();
-//                try {
-//                    unregisterReceiver(wifiReceiver);
-//                }
-//                catch (Exception e){}
             }
         });
 
+        // Sense Bayes
         btnSenseBayes = (Button) findViewById(R.id.btnSenseBayes);
         btnSenseBayes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                accelerometer.register();
-//                magnetometer.register();
-//                registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+                accelerometer.register(SAMPLING_RATE_ACC);
+                orientation.register(SAMPLING_RATE_ORIENTATION);
+                registerReceiver(wifi, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
             }
         });
-
     }
 
     public void updateInfoView() {
