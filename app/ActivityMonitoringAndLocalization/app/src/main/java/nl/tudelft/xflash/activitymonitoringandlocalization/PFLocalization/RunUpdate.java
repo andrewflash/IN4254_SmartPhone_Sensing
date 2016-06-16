@@ -60,7 +60,7 @@ public class RunUpdate implements Runnable {
 
         // Update localization monitor
         if (this.localizationMonitor.update(angle,dT)) {
-            // Check for convergence and change the color of particles
+            // Check for convergence of particles
             if(!particleHasConverged) {
                 convergedLoc = localizationMonitor.particleConverged();
                 if (convergedLoc != null) {
@@ -76,7 +76,7 @@ public class RunUpdate implements Runnable {
                     particleHasConverged = true;
                     localizationMonitor.setParticleHasConverged(true);
                 }
-                // Set values like particles and the direction
+                // Set values of particles and direction
                 if(activityMonitoring.getActivity() == Type.WALKING){
                     this.localizationMap.setParticles(this.localizationMonitor.getParticles());
                 }

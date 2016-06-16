@@ -148,12 +148,16 @@ public class ParticleFilter {
         // Get instance of visited path
         VisitedPath visitedPath = VisitedPath.getInstance();
 
-        mov = distanceModel.getDistance(alpha,time);
         for(Particle p : particles) {
+            mov = distanceModel.getDistance(alpha,time);
             p.updateLocation(mov[0], mov[1]);
-            dx.add(mov[0]);
-            dy.add(mov[1]);
+            // Check particle collision with walls
+            if(!floorLayout.detectCollision(p) && floorLayout.isParticleInside(p)) {
+                dx.add(mov[0]);
+                dy.add(mov[1]);
+            }
         }
+
         // New movement (not yet converged), then update the path
         visitedPath.setDx(ArrayOperations.mean(this.dx));
         visitedPath.setDy(ArrayOperations.mean(this.dy));

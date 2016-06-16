@@ -232,30 +232,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     @Override
     public void update(Observable observable, Object o) {
         Log.d(this.getClass().getSimpleName(),"Receive WiFi update");
-//        // If we receive update of orientation data
-//        if(observable == orientation) {
-//            if(this.accelX.size() == 0 && this.orienX.size() == 0){
-//                startTime = System.currentTimeMillis();
-//            }
-//
-//            // Collect accelero data as large as WINDOW SIZE
-//            if(accelX.size() <= WINDOW_SIZE_ACC) {
-//                this.accelX.add(orientation.getAccel()[0]);
-//                this.accelY.add(orientation.getAccel()[1]);
-//                this.accelZ.add(orientation.getAccel()[2]);
-//            }
-//
-//            // Collect as much orientation data as WINDOW SIZE
-//            if(orienX.size() <= WINDOW_SIZE_ORIENTATION) {
-//                this.orienX.add(orientation.getOrientationResults()[0]);
-//                this.orienY.add(orientation.getOrientationResults()[1]);
-//                this.orienZ.add(orientation.getOrientationResults()[2]);
-//            }
-//
-//            orienAvg[0] = orientation.getOrientationResults()[0];///WINDOW_SIZE_ORIENTATION;
-//            orienAvg[1] = orientation.getOrientationResults()[1];///WINDOW_SIZE_ORIENTATION;
-//            or    ienAvg[2] = orientation.getOrientationResults()[2];///WINDOW_SIZE_ORIENTATION;
-//
 //            // Update localization after collecting as much data as WINDOW SIZE
 //            if(this.accelX.size() >= WINDOW_SIZE_ACC && this.orienX.size() >= WINDOW_SIZE_ORIENTATION) {
 //                float dT = (float)(Double.valueOf(System.currentTimeMillis() - startTime)/1000d);
@@ -266,23 +242,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
 //
 //                // Add runnable to queue
 //                executor.submit(runUpdate);
-//
-//                // Scan Wifi while user is walking
-//                if(activityType.getLast() == Type.WALKING) {
-//                    wifiManager.startScan();
-//                }
-//
-//                // Update View in GUI
-//                mHandler.post(updateInfoViewTask);
-//
-//                // Clear sensor data
-//                accelX.clear();
-//                accelY.clear();
-//                accelZ.clear();
-//                orienX.clear();
-//                orienY.clear();
-//                orienZ.clear();
-//            }
 //        // If we receive update of wifi data
 //        } else {//if(observable == wifi.getObservable()){
 //            Log.d(this.getClass().getSimpleName(),"receiveWifi");
@@ -362,12 +321,8 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         accelerometer.attach(this);
 
         // Orientation
-        //orientation = new OrientationFusion(sensorManager);
         orientation = new RotationSensor(sensorManager);
         orientation.attach(this);
-
-        //orientation.addObserver(this);
-        //orientation.initListeners();
     }
 
     private void initWifi() {
