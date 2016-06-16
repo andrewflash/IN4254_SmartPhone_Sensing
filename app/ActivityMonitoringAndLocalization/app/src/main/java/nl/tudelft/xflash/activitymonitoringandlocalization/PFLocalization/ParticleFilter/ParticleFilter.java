@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import nl.tudelft.xflash.activitymonitoringandlocalization.Misc.ArrayOperations;
-import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.MotionModel.DistanceModel;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.Location;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.MotionModel.DistanceModelZee;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.VisitedPath;
 
 /**
@@ -22,7 +22,7 @@ public class ParticleFilter {
 
     private Random rand;
     private ArrayList<Float> dx,dy;
-    private DistanceModel distanceModel;
+    private DistanceModelZee distanceModelZee;
     private float[] mov = {0,0};
 
     public ParticleFilter(final int n, FloorLayout floorLayout){
@@ -33,7 +33,7 @@ public class ParticleFilter {
         this.rand = new Random();
         this.dx = new ArrayList<>();
         this.dy = new ArrayList<>();
-        this.distanceModel = new DistanceModel(this.floorLayout);
+        this.distanceModelZee = new DistanceModelZee(this.floorLayout);
     }
 
     // Generate n particles
@@ -82,7 +82,7 @@ public class ParticleFilter {
 
         // Check particle collision with walls
         for (Particle p : dupParticles){
-            mov = distanceModel.getDistance(alpha,time);
+            mov = distanceModelZee.getDistance(alpha,time);
             p.updateLocation(mov[0], mov[1]);
             if(floorLayout.detectCollision(p)){
                 collisionParticles.add(p);

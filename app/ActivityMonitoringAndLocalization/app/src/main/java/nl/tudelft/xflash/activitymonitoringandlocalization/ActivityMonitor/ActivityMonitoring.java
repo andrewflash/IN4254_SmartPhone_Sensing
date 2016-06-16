@@ -1,22 +1,12 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.util.Log;
 
 import java.util.ArrayList;
 
-import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.FeatureExtractor;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.FeatureExtractorAC;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.FeatureExtractorMag;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.FeatureExtractorSD;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.FeatureSet;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.KNN;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Classification.LabeledFeatureSet;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Database.AbstractReader;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Database.Reader;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Database.ReaderTest;
-import nl.tudelft.xflash.activitymonitoringandlocalization.R;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.MotionModel.DistanceModelZee;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.MotionModel.Nasc;
 
 /**
  * Created by xflash on 4-5-16.
@@ -24,75 +14,53 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.R;
 public class ActivityMonitoring {
     // This instance keeps track of the activities performed
     ActivityType activityList;
+    DistanceModelZee distanceModelZee;
+    private Nasc nasc;
+    private int stepCount;
+    private float strideLength;
+    private int tmin = 40;
+    private int tmax = 100;
+    private boolean finished = true;
 
-    // Readers
-    private AbstractReader SDReader;
-//    private AbstractReader MagReader;
-//    private AbstractReader ACReader;
-//    private AbstractReader FFTReader;
-
-    // Initialise the Feature type!
-    ArrayList<FeatureExtractor> extractor;
-
-    // k-Nearest Neighbors
-    private KNN knn;
-    private final int K = 5;
-
-//    //Try to estimate speed of walking
-//    private float speed;
-
-    public ActivityMonitoring(Context ctx) {
-
-        Resources res = ctx.getResources();
-
-        // initialise the readers to train kNN
-        SDReader = new ReaderTest(ctx, R.raw.stdfeature);
-        //SDReader = new ReaderTest(ctx, R.raw.stdfeature);
-//        MagReader = new ReaderTest(ctx, R.raw.maxfeature);
-//        ACReader = new ReaderTest(ctx, R.raw.acfeature);
-//        FFTReader = new ReaderTest(ctx, R.raw.fftfeature);
-        //FFTReader = new ReaderTest(ctx, R.raw.fftfeature);
-
-        // Choose which features you want
-        extractor = new ArrayList<>();
-        extractor.add(new FeatureExtractorSD());
-//        extractor.add(new FeatureExtractorMag());
-//        extractor.add(new FeatureExtractorAC());
-//        extractor.add(new FeatureExtractorFFT());
-
+    public ActivityMonitoring(Context ctx, DistanceModelZee distanceModelZee) {
+        this.distanceModelZee = distanceModelZee;
         activityList = ActivityType.getInstance();
+        nasc = new Nasc();
+    }
 
-        ArrayList<Float> SDList = new ArrayList<>();
-//        ArrayList<Float> MagList = new ArrayList<>();
-//        ArrayList<Float> ACList = new ArrayList<>();
-//        ArrayList<Float> FFTList = new ArrayList<>();
-        ArrayList<Type> labelsList = new ArrayList<>();
-
-        // Get all data from the trainingData file in resources
-        SDReader.readData();
-//        MagReader.readData();
-//        ACReader.readData();
-//        FFTReader.readData();
-
-        SDList = SDReader.getAllX();
-//         MagList = MagReader.getAllX();
-//        ACList = ACReader.getAllX();
-//        FFTList = FFTReader.getAllX();
-
-        labelsList = SDReader.getAllStates();
-//        labelsList = ACReader.getAllStates();
-//        labelsList = MagReader.getAllStates();
-
-        ArrayList<LabeledFeatureSet> train = new ArrayList<>();
-        for (int i = 0; i < labelsList.size(); i++) {
-            FeatureSet f = new FeatureSet();
-            f.addFeature(SDList.get(i));
-//            f.addFeature(MagList.get(i));
-//            f.addFeature(ACList.get(i));
-//            f.addFeature(FFTList.get(i));
-            train.add(new LabeledFeatureSet(f, labelsList.get(i)));
+    private void updateStepCount() {
+        if(getActivity() == Type.WALKING) { // always walking
+            this.stepCount = 250 / (nasc.gettOpt()/2);
         }
-        knn = new KNN(K, train);
+        Log.d(this.getClass().getSimpleName(), "stepCount is " + this.stepCount);
+        distanceModelZee.setStepCount(this.stepCount);
+    }
+
+    private void updateStrideLength() {
+        this.strideLength = 0.4f; // in meter;
+        distanceModelZee.setStrideLength(this.strideLength);
+    }
+
+    private Type updateState() {
+        double stdevAcc = 0.0;
+        double maxNAC = 0.0;
+        Type state = Type.NONE;
+
+        // calculate stdevAcc
+        stdevAcc = nasc.stdevAccelero();
+        // calculate maxNAC
+        maxNAC = nasc.getMaxNac();
+
+        Log.d(this.getClass().getSimpleName(), "stdevAcc is " + stdevAcc);
+        Log.d(this.getClass().getSimpleName(), "maxNAC is " + maxNAC);
+
+        if(stdevAcc < 0.01) {
+            state = Type.IDLE;
+        }
+        if(maxNAC > 0.7) {
+            state = Type.WALKING;
+        }
+        return state;
     }
 
     // Get current activity
@@ -103,14 +71,27 @@ public class ActivityMonitoring {
         return activityList.getType(activityList.size() - 1);
     }
 
+    public boolean isFinished() {
+        return this.finished;
+    }
+
     // Update activity based on acc data
     public void update(ArrayList<Float> x, ArrayList<Float> y, ArrayList<Float> z) {
-        // Extract features and classify them
-        FeatureSet fs = new FeatureSet();
-        for (FeatureExtractor ext : extractor) {
-            fs.addFeature(ext.extractFeatures(x, y, z));
-        }
-        Type label = knn.classify(fs);
+        Log.d(this.getClass().getSimpleName(), "updating ActivityMonitoring");
+        this.finished = false;
+
+        nasc.setAccelerations(x, y, z);
+        Log.d(this.getClass().getSimpleName(), "calculate MaxNAC & Opt");
+        nasc.calculateMaxNACandTopt(this.tmin, this.tmax);
+
+        Log.d(this.getClass().getSimpleName(), "update State");
+        Type label = updateState();
         activityList.addType(label);
+
+        Log.d(this.getClass().getSimpleName(), "update stepCount");
+        updateStepCount();
+        updateStrideLength();
+        this.finished = true;
+        Log.d(this.getClass().getSimpleName(), "finish ActivityMonitoring");
     }
 }
