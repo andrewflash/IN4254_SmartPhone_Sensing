@@ -27,7 +27,7 @@ import java.util.concurrent.Executors;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityMonitoring;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityType;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
-import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.DistanceModelZee;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.MotionModel.DistanceModelZee;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.LocalizationMonitor;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.Sensor.OrientationFusion;
@@ -73,7 +73,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     // Windows size of accelerometer and orientation sensor
     public static final int SAMPLING_RATE_ACC = 20000; // 50 Hz (1/20000 us)
     public static final int SAMPLING_RATE_ORIENTATION = 20000; // 50 Hz (1/20000 us)
-    public static final int WINDOW_SIZE_ACC = 20;
+    public static final int WINDOW_SIZE_ACC = 250;
     public static final int WINDOW_SIZE_ORIENTATION = 5;
 
     // Timing for calculating window
@@ -115,7 +115,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         // Executor
         executor = Executors.newSingleThreadExecutor();
 
@@ -182,6 +181,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     // ObserverSensor
     @Override
     public void update(int SensorType) {
+
         if(this.accelX.size() == 0){
             startTime = System.currentTimeMillis();
         }

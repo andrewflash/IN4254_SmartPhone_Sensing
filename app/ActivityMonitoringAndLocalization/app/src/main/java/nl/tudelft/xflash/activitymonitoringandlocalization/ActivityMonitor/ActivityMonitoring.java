@@ -5,8 +5,8 @@ import android.util.Log;
 
 import java.util.ArrayList;
 
-import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.DistanceModelZee;
-import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.Nasc;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.MotionModel.DistanceModelZee;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.MotionModel.Nasc;
 
 /**
  * Created by xflash on 4-5-16.
@@ -32,6 +32,7 @@ public class ActivityMonitoring {
         if(getActivity() == Type.WALKING) { // always walking
             this.stepCount = 250 / (nasc.gettOpt()/2);
         }
+        Log.d(this.getClass().getSimpleName(), "stepCount is " + this.stepCount);
         distanceModelZee.setStepCount(this.stepCount);
     }
 
@@ -76,16 +77,21 @@ public class ActivityMonitoring {
 
     // Update activity based on acc data
     public void update(ArrayList<Float> x, ArrayList<Float> y, ArrayList<Float> z) {
+        Log.d(this.getClass().getSimpleName(), "updating ActivityMonitoring");
         this.finished = false;
 
         nasc.setAccelerations(x, y, z);
+        Log.d(this.getClass().getSimpleName(), "calculate MaxNAC & Opt");
         nasc.calculateMaxNACandTopt(this.tmin, this.tmax);
 
+        Log.d(this.getClass().getSimpleName(), "update State");
         Type label = updateState();
         activityList.addType(label);
 
+        Log.d(this.getClass().getSimpleName(), "update stepCount");
         updateStepCount();
         updateStrideLength();
         this.finished = true;
+        Log.d(this.getClass().getSimpleName(), "finish ActivityMonitoring");
     }
 }
