@@ -1,5 +1,7 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization;
 
+import android.util.Log;
+
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityMonitoring;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.Location;
@@ -15,7 +17,6 @@ public class RunUpdateLocalization implements Runnable {
 
     private float angle;
 
-    private ActivityMonitoring activityMonitoring;
     private LocalizationMonitor localizationMonitor;
 
     private VisitedPath visitedPath;
@@ -25,19 +26,18 @@ public class RunUpdateLocalization implements Runnable {
     private LocalizationMap localizationMap;
     private CompassGUI compassGUI;
 
-    private float dT;
+    private int stepCount;
 
-    public RunUpdateLocalization(float angle, ActivityMonitoring acMon, LocalizationMonitor locMon,
-                                 LocalizationMap locMap, CompassGUI compGUI, float dT)
+    public RunUpdateLocalization(float angle, LocalizationMonitor locMon,
+                                 LocalizationMap locMap, CompassGUI compGUI, int stepCount)
     {
         this.angle = angle;
         this.localizationMonitor = locMon;
         this.localizationMap = locMap;
         this.compassGUI = compGUI;
-        this.dT = dT;
+        this.stepCount = stepCount;
         this.visitedPath = VisitedPath.getInstance();
         this.particleHasConverged = false;
-        this.activityMonitoring = acMon;
     }
 
     @Override
@@ -45,7 +45,7 @@ public class RunUpdateLocalization implements Runnable {
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
 
         // Update localization monitor
-        if (this.localizationMonitor.update(angle,dT)) {
+        if (this.localizationMonitor.update(angle,stepCount)) {
             // Check for convergence of particles
             if(!particleHasConverged) {
                 convergedLoc = localizationMonitor.particleConverged();
@@ -63,12 +63,12 @@ public class RunUpdateLocalization implements Runnable {
                     localizationMonitor.setParticleHasConverged(true);
                 }
                 // Set values of particles and direction
-                if(activityMonitoring.getActivity() == Type.WALKING){
+                if(stepCount != 0){
                     this.localizationMap.setParticles(this.localizationMonitor.getParticles());
                 }
             } else {
                 // Set values like particles and the direction
-                if(activityMonitoring.getActivity() == Type.WALKING){
+                if(stepCount != 0){
                     final Particle convLoc = this.localizationMonitor.getParticles().get(0);
                     this.localizationMap.post(new Runnable() {
                         @Override
@@ -79,20 +79,22 @@ public class RunUpdateLocalization implements Runnable {
                 }
             }
 
-            compassGUI.setAngle(localizationMonitor.getAngle());
-
-            this.compassGUI.post(new Runnable() {
-                public void run() {
-                    compassGUI.invalidate();
-                }
-            });
-
-            this.localizationMap.post(new Runnable() {
-                public void run() {
-                    localizationMap.invalidate();
-                }
-            });
-
         }
+
+        compassGUI.setAngle(angle);
+
+        compassGUI.post(new Runnable() {
+            @Override
+            public void run() {
+                compassGUI.invalidate();
+            }
+        });
+
+        localizationMap.post(new Runnable() {
+            @Override
+            public void run() {
+                localizationMap.invalidate();
+            }
+        });
     }
 }

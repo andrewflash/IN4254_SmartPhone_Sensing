@@ -21,6 +21,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -30,12 +32,13 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.MotionModel.DistanceModelZee;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.LocalizationMonitor;
-import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.RunUpdate;
+//import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.RunUpdate;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.RunUpdateActivity;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.RunUpdateLocalization;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.CompassGUI;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.LocalizationMap;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.Accelerometer;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.LinearAccelero;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.ObserverSensor;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.RotationSensor;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.WiFi;
@@ -58,7 +61,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     // Sensors
     private SensorManager sensorManager;
     private RotationSensor orientation;
-    private Accelerometer accelerometer;
+    private LinearAccelero accelerometer;
     private WifiManager wifiManager;
     private WiFi wifi;
 
@@ -68,12 +71,12 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private ArrayList<Float> accelZ;
     private float angle;
 
-    // Sampling rate of accelerometer and orientation sensor
+    // Windows size of accelerometer and orientation sensor
     public static final int SAMPLING_RATE_ACC = 20000; // 50 Hz (1/20000 us)
     public static final int SAMPLING_RATE_ORIENTATION = 20000; // 50 Hz (1/20000 us)
 
     // Sample size of accelerometer
-    private int ACC_SAMPLE = 10;
+    private static final int ACC_SAMPLE = 10;
     private int numSample = 0;
 
     // Particle converged flag
@@ -114,7 +117,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     public Handler mHandler;
     DecimalFormat d = new DecimalFormat("#.##");
     DecimalFormat di = new DecimalFormat("#");
-    DistanceModelZee distanceModelZee;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,8 +135,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         totalStep = 0;
 
         // Monitoring (monitor activity and localization
-        distanceModelZee = new DistanceModelZee(floorLayout);
-        activityMonitoring = new ActivityMonitoring(getApplicationContext(), distanceModelZee);
+        activityMonitoring = new ActivityMonitoring(getApplicationContext());
         localizationMonitor = new LocalizationMonitor(getApplicationContext(), floorLayout, N_PARTICLES);
 
         // Get activity type
@@ -149,6 +150,11 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         // Init Sensors
         initSensors();
 
+        // Update View in GUI
+        setUpdateInfoSchedule();
+        //mHandler.post(updateInfoViewTask);
+
+        setUpdateLocalizationMonitoring();
         // Init Wifi
         //initWifi();
     }
@@ -196,15 +202,16 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             startTime = System.currentTimeMillis();
         }
 
-        if(SensorType == Sensor.TYPE_ACCELEROMETER) {
-            this.accelX.add(Accelerometer.getLinearAcceleration()[0]);
-            this.accelY.add(Accelerometer.getLinearAcceleration()[1]);
-            this.accelZ.add(Accelerometer.getLinearAcceleration()[2]);
+        if(SensorType == Sensor.TYPE_LINEAR_ACCELERATION) {
+            // Collect accelero data as large as WINDOW SIZE
+            this.accelX.add(LinearAccelero.getLinearAcceleration()[0]);
+            this.accelY.add(LinearAccelero.getLinearAcceleration()[1]);
+            this.accelZ.add(LinearAccelero.getLinearAcceleration()[2]);
             this.numSample = this.numSample + 1;
 
             if(activityMonitoring.getActivity() == Type.WALKING) {
-                this.stepSamples = this.stepSamples+1;
-                if (this.stepSamples >= activityMonitoring.getTOpt()/2) {
+                this.stepSamples = this.stepSamples + 1;
+                if (this.stepSamples >= activityMonitoring.getTOpt() / 2) {
                     this.stepCount = this.stepCount + 1;
                     this.stepSamples = 0;
                 }
@@ -217,42 +224,22 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     this.accelZ.remove(j);
                 }
                 this.numSample = 0;
-                // Create runnable
-                RunUpdateActivity runUpdateActivity = new RunUpdateActivity(accelX, accelY, accelZ,
-                        activityMonitoring);
+
+                // Create runnable activity monitoring
+                RunUpdateActivity runUpdateActivity = new RunUpdateActivity(accelX, accelY, accelZ, activityMonitoring);
+
                 // Add runnable to queue
                 executor.submit(runUpdateActivity);
-
-                float dT = (float)(Double.valueOf(System.currentTimeMillis() - startTime)/1000d);
-
-                // Create runnable
-                RunUpdateLocalization runUpdateLocalization = new RunUpdateLocalization(angle,
-                        activityMonitoring, localizationMonitor, localizationView, compassGUI, dT);
-
-                // Update particle converged flag
-                isParticleConverged = localizationMonitor.isParticleHasConverged();
-
-                // Add runnable to queue
-                executor.submit(runUpdateLocalization);
-
-                // Scan Wifi while user is walking
-                if (activityType.getLast() == Type.WALKING) {
-                    //wifiManager.startScan();
-                }
-
-                // Update View in GUI
-                mHandler.post(updateInfoViewTask);
-
             }
         } else if(SensorType == Sensor.TYPE_ROTATION_VECTOR) {
             angle = RotationSensor.getAngleRad();
         }
-}
+    }
 
     // Observer
     @Override
     public void update(Observable observable, Object o) {
-//        Log.d(this.getClass().getSimpleName(),"Receive WiFi update");
+        Log.d(this.getClass().getSimpleName(),"Receive WiFi update");
 //        // If we receive update of wifi data
 //        } else {//if(observable == wifi.getObservable()){
 //            Log.d(this.getClass().getSimpleName(),"receiveWifi");
@@ -300,7 +287,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         compassLayout.addView(compassGUI);
 
         // Text View
-        mHandler = new Handler();
+        //mHandler = new Handler();
         txtAngle = (TextView)findViewById(R.id.txtOrienAngle);
 
         txtActivityPF = (TextView)findViewById(R.id.txtActivityPF);
@@ -323,7 +310,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
         // Accelerometer
-        accelerometer = new Accelerometer(sensorManager);
+        accelerometer = new LinearAccelero(sensorManager);
         accelerometer.attach(this);
 
         // Orientation
@@ -353,23 +340,15 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     accelerometer.register(SAMPLING_RATE_ACC);
                     orientation.register(SAMPLING_RATE_ORIENTATION);
 
+                    setUpdateLocalizationMonitoring();
+
                     localizationMonitor.reset();
                     btnInitialBeliefPA.setText("STOP INITIAL BELIEF");
 
                     localizationView.setParticles(localizationMonitor.getParticles());
                     localizationView.reset();
-                    localizationView.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            localizationView.invalidate();
-                        }
-                    });
-                    compassGUI.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            compassGUI.invalidate();
-                        }
-                    });
+                    localizationView.invalidate();
+                    compassGUI.invalidate();
                     initInitialBeliefPA = true;
                 } else {
                     // Initial Belief stop
@@ -415,11 +394,69 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             initInitialBeliefPA = false;
             btnInitialBeliefPA.setText("INITIAL BELIEF PA");
         }
+
+        //this.compassGUI.invalidate();
     }
 
-    private Runnable updateInfoViewTask = new Runnable() {
-        public void run() {
-            updateInfoView();
-        }
-    };
+    public void setUpdateInfoSchedule(){
+        Timer schedulerTimer = new Timer();
+
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateInfoView();
+                    }
+                });
+            }
+        };
+        schedulerTimer.scheduleAtFixedRate(task,0,250);
+    }
+
+
+    public void setUpdateLocalizationMonitoring() {
+        Timer schedulerTimer = new Timer();
+
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //ArrayList<Integer> stepCountList = activityMonitoring.getStepCountList();
+                        //int totalStepCurrent = 0;
+
+//                        for(int step : stepCountList){
+//                            totalStepCurrent += step;
+//                            totalStep += step;
+//                        }
+
+                        activityMonitoring.clearStepCountList();
+
+                        // Create runnable localization
+                        RunUpdateLocalization runUpdateLocalization = new RunUpdateLocalization(
+                                angle, localizationMonitor, localizationView, compassGUI, stepCount);
+
+                        totalStep += stepCount;
+                        stepCount = 0;
+
+                        // Add runnable to queue
+                        executor.submit(runUpdateLocalization);
+
+                        // Update particle converged flag
+                        isParticleConverged = localizationMonitor.isParticleHasConverged();
+
+                        // Scan Wifi while user is walking
+                        if (activityType.getLast() == Type.WALKING) {
+                            //wifiManager.startScan();
+                        }
+                    }
+                });
+            }
+        };
+        schedulerTimer.scheduleAtFixedRate(task,0,500);
+    }
+
 }
