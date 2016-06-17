@@ -199,9 +199,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             angle = RotationSensor.getAngleRad();
         }
 
-        // Update activity after collecting as much data as WINDOW SIZE
+        // Update localization after collecting as much data as WINDOW SIZE
         if(this.accelX.size() >= activityMonitoring.getWindowSize()) {
-            float dT = (float) (Double.valueOf(System.currentTimeMillis() - startTime) / 1000d);
+            float dT = (float)(Double.valueOf(System.currentTimeMillis() - startTime)/1000d);
 
             // Create runnable
             RunUpdate runUpdate = new RunUpdate(accelX, accelY, accelZ, angle,
