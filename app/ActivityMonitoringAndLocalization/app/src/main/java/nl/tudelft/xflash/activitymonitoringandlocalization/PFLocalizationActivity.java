@@ -31,6 +31,8 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.Motion
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.LocalizationMonitor;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.RunUpdate;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.RunUpdateActivity;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.RunUpdateLocalization;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.CompassGUI;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.LocalizationMap;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.Accelerometer;
@@ -66,9 +68,13 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private ArrayList<Float> accelZ;
     private float angle;
 
-    // Windows size of accelerometer and orientation sensor
+    // Sampling rate of accelerometer and orientation sensor
     public static final int SAMPLING_RATE_ACC = 20000; // 50 Hz (1/20000 us)
     public static final int SAMPLING_RATE_ORIENTATION = 20000; // 50 Hz (1/20000 us)
+
+    // Sample size of accelerometer
+    private int ACC_SAMPLE = 10;
+    private int numSample = 0;
 
     // Particle converged flag
     private boolean isParticleConverged;
@@ -189,11 +195,24 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         }
 
         if(SensorType == Sensor.TYPE_ACCELEROMETER) {
-            // Collect accelero data as large as WINDOW SIZE
-            if(accelX.size() <= activityMonitoring.getWindowSize()) {
-                this.accelX.add(Accelerometer.getLinearAcceleration()[0]);
-                this.accelY.add(Accelerometer.getLinearAcceleration()[1]);
-                this.accelZ.add(Accelerometer.getLinearAcceleration()[2]);
+            this.accelX.add(Accelerometer.getLinearAcceleration()[0]);
+            this.accelY.add(Accelerometer.getLinearAcceleration()[1]);
+            this.accelZ.add(Accelerometer.getLinearAcceleration()[2]);
+            this.numSample = this.numSample + 1;
+            if (this.accelX.size() >= activityMonitoring.getWindowSize() && this.numSample >= ACC_SAMPLE) {
+                Log.d(this.getClass().getSimpleName(), "accelSize: "+accelX.size()+", " +
+                        "AMWindowSize: " + activityMonitoring.getWindowSize());
+                for (int j=0; j<ACC_SAMPLE; j++) {
+                    this.accelX.remove(j);
+                    this.accelY.remove(j);
+                    this.accelZ.remove(j);
+                }
+                this.numSample = 0;
+                // Create runnable
+                RunUpdateActivity runUpdateActivity = new RunUpdateActivity(accelX, accelY, accelZ,
+                        activityMonitoring);
+                // Add runnable to queue
+                executor.submit(runUpdateActivity);
             }
         } else if(SensorType == Sensor.TYPE_ROTATION_VECTOR) {
             angle = RotationSensor.getAngleRad();
@@ -204,32 +223,22 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             float dT = (float)(Double.valueOf(System.currentTimeMillis() - startTime)/1000d);
 
             // Create runnable
-            RunUpdate runUpdate = new RunUpdate(accelX, accelY, accelZ, angle,
+            RunUpdateLocalization runUpdateLocalization = new RunUpdateLocalization(angle,
                     activityMonitoring, localizationMonitor, localizationView, compassGUI, dT);
 
             // Update particle converged flag
             isParticleConverged = localizationMonitor.isParticleHasConverged();
 
             // Add runnable to queue
-            executor.submit(runUpdate);
+            executor.submit(runUpdateLocalization);
 
             // Scan Wifi while user is walking
             if (activityType.getLast() == Type.WALKING) {
                 //wifiManager.startScan();
             }
 
-            // Caculate total step
-            if(activityMonitoring.isFinished()) {
-                totalStep += activityMonitoring.getStepCount();
-            }
-
             // Update View in GUI
             mHandler.post(updateInfoViewTask);
-
-            // Clear sensor data
-            accelX.clear();
-            accelY.clear();
-            accelZ.clear();
         }
 }
 
