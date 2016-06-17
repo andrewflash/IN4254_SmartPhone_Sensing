@@ -21,16 +21,17 @@ public class ActivityMonitoring {
     private int tmin = 40;
     private int tmax = 100;
     private boolean finished = true;
+    private Type oldState = Type.NONE;
 
     public ActivityMonitoring(Context ctx, DistanceModelZee distanceModelZee) {
         this.distanceModelZee = distanceModelZee;
         activityList = ActivityType.getInstance();
-        nasc = new Nasc();
+        nasc = new Nasc(tmin, tmax);
     }
 
     private void updateStepCount() {
         if(getActivity() == Type.WALKING) { // always walking
-            this.stepCount = 250 / (nasc.gettOpt()/2);
+            this.stepCount = getWindowSize() / (nasc.gettOpt()/2); // num samples = window size
         }
         else {
             this.stepCount = 0;
@@ -40,14 +41,18 @@ public class ActivityMonitoring {
     }
 
     private void updateStrideLength() {
-        this.strideLength = 0.4f; // in meter;
+        this.strideLength = 0.5f; // in meter;
         distanceModelZee.setStrideLength(this.strideLength);
+    }
+
+    public int getWindowSize() {
+        return this.tmax*2+10;
     }
 
     private Type updateState() {
         double stdevAcc = 0.0;
         double maxNAC = 0.0;
-        Type state = Type.NONE;
+        Type state = this.oldState;
 
         // calculate stdevAcc
         stdevAcc = nasc.stdevAccelero();
@@ -57,13 +62,13 @@ public class ActivityMonitoring {
         Log.d(this.getClass().getSimpleName(), "stdevAcc is " + stdevAcc);
         Log.d(this.getClass().getSimpleName(), "maxNAC is " + maxNAC);
 
-        // malah kebalikannya paper
-        if(stdevAcc < 0.01) {
+        if(stdevAcc < 0.03) {
             state = Type.IDLE;
         }
         if(maxNAC > 0.7) {
             state = Type.WALKING;
         }
+        this.oldState = state;
         return state;
     }
 
@@ -80,7 +85,11 @@ public class ActivityMonitoring {
         this.finished = false;
 
         nasc.setAccelerations(x, y, z);
+
         nasc.calculateMaxNACandTopt(this.tmin, this.tmax);
+
+        this.tmin = nasc.gettMin();
+        this.tmax = nasc.gettMax();
 
         Type label = updateState();
         activityList.addType(label);

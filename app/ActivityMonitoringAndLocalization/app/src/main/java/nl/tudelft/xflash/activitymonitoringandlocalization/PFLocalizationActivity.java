@@ -71,9 +71,8 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private float angle;
 
     // Windows size of accelerometer and orientation sensor
-    public static final int SAMPLING_RATE_ACC = 1000; // 1000 Hz (1/1000 us)
+    public static final int SAMPLING_RATE_ACC = 20000; // 50 Hz (1/20000 us)
     public static final int SAMPLING_RATE_ORIENTATION = 20000; // 50 Hz (1/20000 us)
-    public static final int WINDOW_SIZE_ACC = 250;
     public static final int WINDOW_SIZE_ORIENTATION = 5;
 
     // Timing for calculating window
@@ -188,7 +187,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
 
         if(SensorType == Sensor.TYPE_ACCELEROMETER) {
             // Collect accelero data as large as WINDOW SIZE
-            if(accelX.size() <= WINDOW_SIZE_ACC) {
+            if(accelX.size() <= activityMonitoring.getWindowSize()) {
                 this.accelX.add(Accelerometer.getLinearAcceleration()[0]);
                 this.accelY.add(Accelerometer.getLinearAcceleration()[1]);
                 this.accelZ.add(Accelerometer.getLinearAcceleration()[2]);
@@ -199,7 +198,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         }
 
         // Update localization after collecting as much data as WINDOW SIZE
-        if(this.accelX.size() >= WINDOW_SIZE_ACC) {
+        if(this.accelX.size() >= activityMonitoring.getWindowSize()) {
             float dT = (float)(Double.valueOf(System.currentTimeMillis() - startTime)/1000d);
 
             // Create runnable

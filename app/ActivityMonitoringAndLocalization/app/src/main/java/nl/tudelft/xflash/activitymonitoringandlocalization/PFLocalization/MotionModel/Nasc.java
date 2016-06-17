@@ -19,7 +19,10 @@ public class Nasc {
     private ArrayList<Float> arrayListY;
     private ArrayList<Float> arrayListZ;
 
-    public Nasc() {
+    public Nasc(int tMin, int tMax) {
+        this.tOpt = tMin;
+        this.tMin = tMin;
+        this.tMax = tMax;
     }
 
     public void setAccelerations(ArrayList<Float> x, ArrayList<Float> y, ArrayList<Float> z){
@@ -39,21 +42,26 @@ public class Nasc {
         arrAcceleroData = new double[t+t-1];
 
         // get mean from m to m+t-1
+//        Log.d(this.getClass().getSimpleName(), "running normalizeAcceleroList t: " + Integer.toString(t-1));
         arrAcceleroData = normalizeAcceleroList(this.arrayListX.subList(0, t-1),
                 this.arrayListY.subList(0, t-1), this.arrayListZ.subList(0, t-1));
+//        Log.d(this.getClass().getSimpleName(), "finished running normalizeAcceleroList");
         Statistics stats = new Statistics(arrAcceleroData);
         mu1 = stats.getMean();
         // get stdev from m to m+t-1
         stdev1 = stats.getStdDev();
 
         // get mean from m+t to m+t+t-1
+//        Log.d(this.getClass().getSimpleName(), "running normalizeAcceleroList t+t: " + Integer.toString(t+t-1));
         arrAcceleroData = normalizeAcceleroList(this.arrayListX.subList(t, t+t-1),
                 this.arrayListY.subList(t, t+t-1), this.arrayListZ.subList(t, t+t-1));
+//        Log.d(this.getClass().getSimpleName(), "finish normalizeAcceleroList t+t: " + Integer.toString(t+t-1));
         stats = new Statistics(arrAcceleroData);
         mu2 = stats.getMean();
         // get stdev from m+t to m+t+t-1
         stdev2 = stats.getStdDev();
 
+//        Log.d(this.getClass().getSimpleName(), "for loop");
         for (k = 0; k < t; k++) {
             // get accelerometer m+k
             a = normalizeAcceleroData(this.arrayListX.get(k), this.arrayListY.get(k), this.arrayListZ.get(k));
@@ -61,14 +69,10 @@ public class Nasc {
             b = normalizeAcceleroData(this.arrayListX.get(k+t), this.arrayListY.get(k+t), this.arrayListZ.get(k+t));
             upper = upper + (a-mu1)*(b-mu2);
         }
+//        Log.d(this.getClass().getSimpleName(), "finish for loop");
 
         // calculate nac: get the normalization value of the upper elements, divide by the lower elements
         nac = upper / (t*stdev1*stdev2);
-
-        // calculate nac: divide upper elements by the lower elements, then normalize
-//        firstElm = firstElm / (t*stdev1*stdev2);
-//        secondElm = secondElm / (t*stdev1*stdev2);
-//        nac = Math.sqrt(Math.pow(firstElm, 2)+Math.pow(secondElm, 2));
 
         return nac;
     }
@@ -76,21 +80,23 @@ public class Nasc {
     public void calculateMaxNACandTopt(int tmin, int tmax) {
         int i;
         int j = 0;
-        int tOptimal = tmin;
+        int maxIndex = 0;
+        int tOptimal = this.tOpt;
         double[] arrNAC;
         arrNAC = new double[tmax-tmin+1];
+
         for (i=tmin; i<=tmax; i++) {
             arrNAC[j] = normalizedAutoCorrelation(i);
             j++;
         }
 
-        // Log.d(this.getClass().getSimpleName(), "finding max NAC");
         for (i = 0; i < arrNAC.length; i++){
             double newnumber = arrNAC[i];
-            if ((newnumber > arrNAC[i])){
-                tOptimal = i+tmin;
+            if ((newnumber > arrNAC[maxIndex])){
+                maxIndex = i;
             }
         }
+        tOptimal = maxIndex+tmin;
 
         Statistics stats = new Statistics(arrNAC);
         this.maxNac = stats.getMax();
@@ -101,6 +107,14 @@ public class Nasc {
 
     public double getMaxNac() {
         return this.maxNac;
+    }
+
+    public int gettMin() {
+        return this.tMin;
+    }
+
+    public int gettMax() {
+        return this.tMax;
     }
 
     public int gettOpt() {
