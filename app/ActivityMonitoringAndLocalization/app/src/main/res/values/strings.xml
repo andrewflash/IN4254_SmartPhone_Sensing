@@ -23,7 +23,7 @@
 
     <!-- PF Localization -->
     <string name="lbl_adv_localization">PF Localization</string>
-    <string name="lbl_angle">North Angle:</string>
+    <string name="lbl_angle">Angle:</string>
     <string name="lbl_orien_azimuth">Azimuth (Z):</string>
     <string name="lbl_orien_pitch">Pitch (X):</string>
     <string name="lbl_orien_roll">Roll (Y):</string>
@@ -37,6 +37,7 @@
     <string name="lbl_total_step">Steps:</string>
     <string name="lbl_dx">dX:</string>
     <string name="lbl_dy">dY:</string>
+    <string name="btn_clear_data">CLEAR DATA</string>
 
     <!-- Localization -->
     <string name="cell_1">C0</string>

@@ -63,35 +63,51 @@ public class LocalizationMonitor {
         return this.angle;
     }
 
-    // Update the localization based on orientation data and timestamp
-    public boolean update(float angle, float time){
+    // Update the localization based on orientation data and step count
+    public boolean update(float angle, int stepCount){
 
-        Type activity = activityList.getType(activityList.size() - 1);
+        //Type activity = activityList.getType(activityList.size() - 1);
 
-        if (activity == Type.WALKING || activity == Type.IDLE ) {
+        if(stepCount != 0) {
             this.angle = angle;
 
-            // If activity Type is WALKING, update the movement of particles
-            if(activity == Type.WALKING) {
-                if(!particleHasConverged) {
-                    pf.movement(angle, time);
-                } else {
-                    pf.movementBest(angle, time);
-                }
-                mov = pf.getMovement();
+            if(!particleHasConverged) {
+                pf.movement(angle, stepCount);
+            } else {
+                pf.movementBest(angle, stepCount);
             }
-
-            // If idle clear mov
-            if(activity == Type.IDLE) {
-                // Clear mov
-                mov[0] = 0;
-                mov[1] = 0;
-            }
+            mov = pf.getMovement();
 
             return true;
+        } else {
+            mov[0] = 0;
+            mov[1] = 0;
+            return false;
         }
 
-        return false;
+
+//        if (activity == Type.WALKING || activity == Type.IDLE) {
+//            this.angle = angle;
+//
+//            // If activity Type is WALKING, update the movement of particles
+//            if(activity == Type.WALKING) {
+//                if(!particleHasConverged) {
+//                    pf.movement(angle, stepCount);
+//                } else {
+//                    pf.movementBest(angle, stepCount);
+//                }
+//                mov = pf.getMovement();
+//            }
+//
+//            // If idle clear mov
+//            if(activity == Type.IDLE) {
+//                // Clear mov
+//                mov[0] = 0;
+//                mov[1] = 0;
+//            }
+//
+//            return true;
+//        }
     }
 
     // Set radius of convergence = 3

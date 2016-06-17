@@ -68,7 +68,7 @@ public class ParticleFilter {
 
 
     // Motion model
-    public void movement(float alpha, float time){
+    public void movement(float alpha, int stepCount){
         ArrayList<Particle> particleTemp = new ArrayList<Particle>(particles.size());
         ArrayList<Particle> dupParticles = new ArrayList<Particle>(particles.size());
 
@@ -82,7 +82,7 @@ public class ParticleFilter {
 
         // Check particle collision with walls
         for (Particle p : dupParticles){
-            mov = distanceModelZee.getDistance(alpha,time);
+            mov = distanceModelZee.getDistance(alpha,stepCount);
             p.updateLocation(mov[0], mov[1]);
             if(floorLayout.detectCollision(p)){
                 collisionParticles.add(p);
@@ -144,12 +144,12 @@ public class ParticleFilter {
     }
 
     // Motion model for best particle
-    public void movementBest(float alpha, float time){
+    public void movementBest(float alpha, int stepCount){
         // Get instance of visited path
         VisitedPath visitedPath = VisitedPath.getInstance();
 
         for(Particle p : particles) {
-            mov = distanceModelZee.getDistance(alpha,time);
+            mov = distanceModelZee.getDistance(alpha,stepCount);
             p.updateLocation(mov[0], mov[1]);
             // Check particle collision with walls
             if(!floorLayout.detectCollision(p) && floorLayout.isParticleInside(p)) {

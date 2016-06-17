@@ -14,10 +14,9 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.Motion
 public class ActivityMonitoring {
     // This instance keeps track of the activities performed
     ActivityType activityList;
-    DistanceModelZee distanceModelZee;
     private Nasc nasc;
     private int stepCount;
-    private int numSamples;
+    private ArrayList<Integer> stepCountList;
     private float strideLength;
     private int tmin = 40;
     private int tmax = 100;
@@ -25,19 +24,26 @@ public class ActivityMonitoring {
     private boolean finished = true;
     private Type oldState = Type.NONE;
 
-    public ActivityMonitoring(Context ctx, DistanceModelZee distanceModelZee) {
-        this.distanceModelZee = distanceModelZee;
+    public ActivityMonitoring(Context ctx) {
         activityList = ActivityType.getInstance();
         nasc = new Nasc(tmin, tmax);
+        stepCountList = new ArrayList<>();
     }
 
-    public int getTOpt() {
-        return this.tOpt;
+    private void updateStepCount() {
+        int nStep = 0;
+        if(getActivity() == Type.WALKING) { // always walking
+            nStep = getWindowSize() / (nasc.gettOpt()/2); // num samples = window size
+            stepCountList.add(nStep);
+        }
+        else {
+            nStep = 0;
+        }
+        this.stepCount = nStep;
     }
 
     private void updateStrideLength() {
         this.strideLength = 0.5f; // in meter;
-        distanceModelZee.setStrideLength(this.strideLength);
     }
 
     public int getWindowSize() {
@@ -54,10 +60,7 @@ public class ActivityMonitoring {
         // calculate maxNAC
         maxNAC = nasc.getMaxNac();
 
-        Log.d(this.getClass().getSimpleName(), "stdevAcc is " + stdevAcc);
-        Log.d(this.getClass().getSimpleName(), "maxNAC is " + maxNAC);
-
-        if(stdevAcc < 0.03) {
+        if(stdevAcc < 0.3) {
             state = Type.IDLE;
         }
         if(maxNAC > 0.7) {
@@ -77,19 +80,23 @@ public class ActivityMonitoring {
 
     // Update activity based on acc data
     public void update(ArrayList<Float> x, ArrayList<Float> y, ArrayList<Float> z) {
-        this.finished = false;
-        nasc.setAccelerations(x, y, z);
-        nasc.calculateMaxNACandTopt(this.tmin, this.tmax);
+        if(this.finished) {
+            this.finished = false;
+            nasc.setAccelerations(x, y, z);
 
-        this.tmin = nasc.gettMin();
-        this.tmax = nasc.gettMax();
-        this.tOpt = nasc.gettOpt();
+            nasc.calculateMaxNACandTopt(this.tmin, this.tmax);
 
-        Type label = updateState();
-        activityList.addType(label);
+            this.tmin = nasc.gettMin();
+            this.tmax = nasc.gettMax();
+            this.tOpt = nasc.gettOpt();
 
-        updateStrideLength();
-        this.finished = true;
+            Type label = this.updateState();
+            activityList.addType(label);
+
+            //updateStepCount();
+            updateStrideLength();
+            this.finished = true;
+        }
     }
 
     public boolean isFinished() {
@@ -98,5 +105,21 @@ public class ActivityMonitoring {
 
     public int getStepCount(){
         return stepCount;
+    }
+
+    public float getStrideLength(){
+        return strideLength;
+    }
+
+    public ArrayList<Integer> getStepCountList(){
+        return stepCountList;
+    }
+
+    public void clearStepCountList(){
+        this.stepCountList.clear();
+    }
+
+    public int getTOpt(){
+        return this.tOpt;
     }
 }

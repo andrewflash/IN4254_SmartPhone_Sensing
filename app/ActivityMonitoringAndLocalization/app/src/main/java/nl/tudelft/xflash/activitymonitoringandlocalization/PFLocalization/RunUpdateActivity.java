@@ -15,8 +15,6 @@ public class RunUpdateActivity implements Runnable {
 
     private ActivityMonitoring activityMonitoring;
 
-    private float dT;
-
     public RunUpdateActivity(ArrayList<Float> accelX, ArrayList<Float> accelY, ArrayList<Float> accelZ,
                              ActivityMonitoring acMon)
     {

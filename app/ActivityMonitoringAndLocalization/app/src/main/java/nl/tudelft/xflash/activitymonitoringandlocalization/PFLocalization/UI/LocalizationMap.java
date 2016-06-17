@@ -6,7 +6,14 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.support.v4.view.ViewCompat;
+import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -33,6 +40,22 @@ public class LocalizationMap extends View {
     private Matrix scaleMatrix;
     private Paint particlePaint, wallPaint, convPaint;
 
+    // Pan and zoom
+    private ScaleGestureDetector mScaleDetector;
+    private float mScaleFactor = 1.f;
+    private float MIN_ZOOM = 1f;
+    private float MAX_ZOOM = 5f;
+    private PointF mid = new PointF();
+    private final static int NONE = 0;
+    private int mode ;
+    private float startX = 0f;
+    private float startY = 0f;
+    private float translateX = 0f;
+    private float translateY = 0f;
+    private float previousTranslateX = 0f;
+    private float previousTranslateY = 0f;
+    private boolean dragged = false;
+
     public LocalizationMap(Context context, Path floorLayout, ArrayList<Particle> particles, float width, float height) {
         super(context);
 
@@ -49,12 +72,12 @@ public class LocalizationMap extends View {
         this.wall.computeBounds(rectF, true);
 
         // Scale the floor layout depending on screen size.
-        this.scale = (size*width)/rectF.width();
+        this.scale = (size * width) / rectF.width();
         scaleMatrix.setScale(scale, scale, rectF.left, rectF.top);
         this.wall.transform(scaleMatrix);
 
-        this.offsetX = (width - width*size)/2;
-        this.offsetY = (height - height*size)/2;
+        this.offsetX = (width - width * size) / 2;
+        this.offsetY = (height - height * size) / 2;
 
         // Offset of X and Y
         this.wall.offset(offsetX, offsetY);
@@ -74,15 +97,18 @@ public class LocalizationMap extends View {
         convPaint.setStyle(Paint.Style.STROKE);
         convPaint.setColor(Color.BLUE);
         convPaint.setStrokeWidth(20);
+
+        // Pan and zoom
+        mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
     }
 
     // Set particle color
-    public void setColor(int color){
+    public void setColor(int color) {
         particlePaint.setColor(color);
     }
 
     // Reset view
-    public void reset(){
+    public void reset() {
         convParticle = null;
         particlePaint.setColor(Color.RED);
     }
@@ -94,12 +120,16 @@ public class LocalizationMap extends View {
     }
 
     // Set converged particle location
-    public void setConvLocation(Particle convParticle){
+    public void setConvLocation(Particle convParticle) {
         this.convParticle = convParticle;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
+        canvas.save();
+        canvas.scale(mScaleFactor, mScaleFactor);
+        canvas.translate(translateX / mScaleFactor, translateY / mScaleFactor);
+
         super.onDraw(canvas);
 
         // Invert canvas (inverted in resource layout)
@@ -110,18 +140,131 @@ public class LocalizationMap extends View {
         canvas.drawPath(wall, wallPaint);
 
         // Draw converged particle
-        if(convParticle != null){
-            canvas.drawPoint(convParticle.getCurrentLocation().getX()*scale +
-                    offsetX, convParticle.getCurrentLocation().getY()*scale + offsetY,
+        if (convParticle != null) {
+            canvas.drawPoint(convParticle.getCurrentLocation().getX() * scale +
+                            offsetX, convParticle.getCurrentLocation().getY() * scale + offsetY,
                     convPaint);
             visitedPath.setPath(convParticle.getCurrentLocation());
             visitedPath.draw(canvas);
         } else {
             // Draw particles
-            for(Particle p : this.particles) {
-                canvas.drawPoint(p.getCurrentLocation().getX()*scale +
-                        offsetX, p.getCurrentLocation().getY()*scale + offsetY, particlePaint);
+            for (Particle p : this.particles) {
+                canvas.drawPoint(p.getCurrentLocation().getX() * scale +
+                        offsetX, p.getCurrentLocation().getY() * scale + offsetY, particlePaint);
             }
         }
+
+        canvas.restore();
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        int ZOOM = 2;
+        int DRAG = 1;
+
+        switch (event.getAction() & MotionEvent.ACTION_MASK) {
+
+            case MotionEvent.ACTION_DOWN:
+
+                mode = DRAG;
+
+                //We assign the current X and Y coordinate of the finger to startX and startY minus the previously translated
+                //amount for each coordinates This works even when we are translating the first time because the initial
+                //values for these two variables is zero.
+                startX = event.getX() - previousTranslateX;
+                startY = event.getY() - previousTranslateY;
+
+                break;
+
+            case MotionEvent.ACTION_MOVE:
+
+                if (mode == ZOOM)
+                    break;
+
+                translateX = event.getX() - startX;
+                translateY = event.getY() - startY;
+
+                //We cannot use startX and startY directly because we have adjusted their values using the previous translation values.
+                //This is why we need to add those values to startX and startY so that we can get the actual coordinates of the finger.
+                double distance = Math.sqrt(Math.pow(event.getX() - (startX + previousTranslateX), 2) +
+                        Math.pow(event.getY() - (startY + previousTranslateY), 2)
+                );
+
+                if(distance > 0) {
+                    dragged = true;
+                }
+
+                break;
+
+            case MotionEvent.ACTION_POINTER_DOWN:
+
+                midPoint(mid, event);
+
+                mode = ZOOM;
+
+                break;
+
+            case MotionEvent.ACTION_UP:
+
+                mode = NONE;
+                dragged = false;
+
+                //All fingers went up, so let's save the value of translateX and translateY into previousTranslateX and
+                //previousTranslate
+                previousTranslateX = translateX;
+                previousTranslateY = translateY;
+
+                break;
+
+            case MotionEvent.ACTION_POINTER_UP:
+
+                mode = NONE;
+
+                //This is not strictly necessary; we save the value of translateX and translateY into previousTranslateX
+                //and previousTranslateY when the second finger goes up
+                previousTranslateX = translateX;
+                previousTranslateY = translateY;
+
+                break;
+        }
+
+        mScaleDetector.onTouchEvent(event);
+
+        //We redraw the canvas only in the following cases:
+        //
+        // o The mode is ZOOM
+        //        OR
+        // o The mode is DRAG and the scale factor is not equal to 1 (meaning we have zoomed) and dragged is
+        //   set to true (meaning the finger has actually moved)
+        if ((mode == DRAG && mScaleFactor != 1f && dragged) || mode == ZOOM) {
+            this.invalidate();
+        }
+
+        return true;
+    }
+
+    private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            mScaleFactor *= detector.getScaleFactor();
+
+            // Don't let the object get too small or too large.
+            mScaleFactor = Math.max(MIN_ZOOM, Math.min(mScaleFactor, MAX_ZOOM));
+
+            invalidate();
+            return true;
+        }
+    }
+
+    // calculate the mid point of the first two fingers
+    private void midPoint(PointF point, MotionEvent event) {
+        // ...
+        float x = event.getX(0) + event.getX(1);
+        float y = event.getY(0) + event.getY(1);
+        point.set(x / 2, y / 2);
+    }
+
+    public void setMinZoom(float minZoom){
+        this.MIN_ZOOM = minZoom;
     }
 }
