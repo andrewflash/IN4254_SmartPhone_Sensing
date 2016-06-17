@@ -33,7 +33,7 @@ public class DistanceModelZee {
     // Estimate distance (dx and dy)
     public float[] getDistance(float alpha, float time) {
         //Gaussian distribution of mean alpha and stdev alphaDeviation
-        float alphaDeviation = 0.05f;   // in radians
+        float alphaDeviation = 0.8859f;   // in radians
 
         // Add gaussian noise to the angle
         float alphaNoise = alpha + floorLayout.getNorthAngle() + (float) rand.nextGaussian()*alphaDeviation;
