@@ -17,9 +17,11 @@ public class ActivityMonitoring {
     DistanceModelZee distanceModelZee;
     private Nasc nasc;
     private int stepCount;
+    private int numSamples;
     private float strideLength;
     private int tmin = 40;
     private int tmax = 100;
+    private int tOpt = 0;
     private boolean finished = true;
     private Type oldState = Type.NONE;
 
@@ -29,14 +31,8 @@ public class ActivityMonitoring {
         nasc = new Nasc(tmin, tmax);
     }
 
-    private void updateStepCount() {
-        if(getActivity() == Type.WALKING) {
-            this.stepCount = getWindowSize() / (nasc.gettOpt()/2); // num samples = window size
-        }
-        else {
-            this.stepCount = 0;
-        }
-        distanceModelZee.setStepCount(this.stepCount);
+    public int getTOpt() {
+        return this.tOpt;
     }
 
     private void updateStrideLength() {
@@ -87,11 +83,11 @@ public class ActivityMonitoring {
 
         this.tmin = nasc.gettMin();
         this.tmax = nasc.gettMax();
+        this.tOpt = nasc.gettOpt();
 
         Type label = updateState();
         activityList.addType(label);
 
-        updateStepCount();
         updateStrideLength();
         this.finished = true;
     }

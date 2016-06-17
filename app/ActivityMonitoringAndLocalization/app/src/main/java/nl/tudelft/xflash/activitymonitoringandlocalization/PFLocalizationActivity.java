@@ -81,6 +81,8 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
 
     // Total Step
     private int totalStep;
+    private int stepSamples;
+    private int stepCount;
 
     // Timing for calculating window
     private long startTime;
@@ -199,6 +201,15 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             this.accelY.add(Accelerometer.getLinearAcceleration()[1]);
             this.accelZ.add(Accelerometer.getLinearAcceleration()[2]);
             this.numSample = this.numSample + 1;
+
+            if(activityMonitoring.getActivity() == Type.WALKING) {
+                this.stepSamples = this.stepSamples+1;
+                if (this.stepSamples >= activityMonitoring.getTOpt()/2) {
+                    this.stepCount = this.stepCount + 1;
+                    this.stepSamples = 0;
+                }
+            }
+
             if (this.accelX.size() >= activityMonitoring.getWindowSize() && this.numSample >= ACC_SAMPLE) {
                 for (int j=0; j<ACC_SAMPLE; j++) {
                     this.accelX.remove(j);
