@@ -23,6 +23,7 @@
 
     <!-- PF Localization -->
     <string name="lbl_adv_localization">PF Localization</string>
+    <string name="lbl_angle">North Angle:</string>
     <string name="lbl_orien_azimuth">Azimuth (Z):</string>
     <string name="lbl_orien_pitch">Pitch (X):</string>
     <string name="lbl_orien_roll">Roll (Y):</string>
@@ -33,7 +34,7 @@
     <string name="lbl_accel_X">Accel-X:</string>
     <string name="lbl_accel_Y">Accel-Y:</string>
     <string name="lbl_accel_Z">Accel-Z:</string>
-    <string name="lbl_total_step">Total step:</string>
+    <string name="lbl_total_step">Steps:</string>
     <string name="lbl_dx">dX:</string>
     <string name="lbl_dy">dY:</string>
 

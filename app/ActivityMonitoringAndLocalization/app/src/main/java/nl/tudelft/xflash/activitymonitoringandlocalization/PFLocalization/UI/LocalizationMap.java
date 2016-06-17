@@ -114,6 +114,8 @@ public class LocalizationMap extends View {
             canvas.drawPoint(convParticle.getCurrentLocation().getX()*scale +
                     offsetX, convParticle.getCurrentLocation().getY()*scale + offsetY,
                     convPaint);
+            visitedPath.setPath(convParticle.getCurrentLocation());
+            visitedPath.draw(canvas);
         } else {
             // Draw particles
             for(Particle p : this.particles) {

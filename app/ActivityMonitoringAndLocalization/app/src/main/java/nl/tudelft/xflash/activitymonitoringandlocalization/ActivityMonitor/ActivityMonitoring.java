@@ -98,4 +98,12 @@ public class ActivityMonitoring {
         updateStrideLength();
         this.finished = true;
     }
+
+    public boolean isFinished() {
+        return finished;
+    }
+
+    public int getStepCount(){
+        return stepCount;
+    }
 }
