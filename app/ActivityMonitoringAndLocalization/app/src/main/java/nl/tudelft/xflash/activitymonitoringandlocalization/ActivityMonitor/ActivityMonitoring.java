@@ -30,13 +30,12 @@ public class ActivityMonitoring {
     }
 
     private void updateStepCount() {
-        if(getActivity() == Type.WALKING) { // always walking
+        if(getActivity() == Type.WALKING) {
             this.stepCount = getWindowSize() / (nasc.gettOpt()/2); // num samples = window size
         }
         else {
             this.stepCount = 0;
         }
-        Log.d(this.getClass().getSimpleName(), "stepCount is " + this.stepCount);
         distanceModelZee.setStepCount(this.stepCount);
     }
 
@@ -82,11 +81,10 @@ public class ActivityMonitoring {
 
     // Update activity based on acc data
     public void update(ArrayList<Float> x, ArrayList<Float> y, ArrayList<Float> z) {
+        Log.d(this.getClass().getSimpleName(), "AM updating");
         this.finished = false;
         nasc.setAccelerations(x, y, z);
-        Log.d(this.getClass().getSimpleName(), "start AM: calculateMaxNACandTopt");
         nasc.calculateMaxNACandTopt(this.tmin, this.tmax);
-        Log.d(this.getClass().getSimpleName(), "finish calculateMaxNACandTopt");
 
         this.tmin = nasc.gettMin();
         this.tmax = nasc.gettMax();
@@ -97,6 +95,7 @@ public class ActivityMonitoring {
         updateStepCount();
         updateStrideLength();
         this.finished = true;
+        Log.d(this.getClass().getSimpleName(), "AM updated");
     }
 
     public boolean isFinished() {

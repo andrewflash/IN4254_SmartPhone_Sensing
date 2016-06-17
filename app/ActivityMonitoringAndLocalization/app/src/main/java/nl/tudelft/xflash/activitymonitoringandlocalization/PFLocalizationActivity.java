@@ -200,45 +200,45 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             this.accelZ.add(Accelerometer.getLinearAcceleration()[2]);
             this.numSample = this.numSample + 1;
             if (this.accelX.size() >= activityMonitoring.getWindowSize() && this.numSample >= ACC_SAMPLE) {
-                Log.d(this.getClass().getSimpleName(), "accelSize: "+accelX.size()+", " +
-                        "AMWindowSize: " + activityMonitoring.getWindowSize());
                 for (int j=0; j<ACC_SAMPLE; j++) {
                     this.accelX.remove(j);
                     this.accelY.remove(j);
                     this.accelZ.remove(j);
                 }
                 this.numSample = 0;
+
+                Log.d(this.getClass().getSimpleName(), "accelSize: "+accelX.size()+", " +
+                        "AMWindowSize: " + activityMonitoring.getWindowSize());
                 // Create runnable
                 RunUpdateActivity runUpdateActivity = new RunUpdateActivity(accelX, accelY, accelZ,
                         activityMonitoring);
                 // Add runnable to queue
                 executor.submit(runUpdateActivity);
+
+                Log.d(this.getClass().getSimpleName(), "Updating localization");
+                float dT = (float)(Double.valueOf(System.currentTimeMillis() - startTime)/1000d);
+
+                // Create runnable
+                RunUpdateLocalization runUpdateLocalization = new RunUpdateLocalization(angle,
+                        activityMonitoring, localizationMonitor, localizationView, compassGUI, dT);
+
+                // Update particle converged flag
+                isParticleConverged = localizationMonitor.isParticleHasConverged();
+
+                // Add runnable to queue
+                executor.submit(runUpdateLocalization);
+
+                // Scan Wifi while user is walking
+                if (activityType.getLast() == Type.WALKING) {
+                    //wifiManager.startScan();
+                }
+
+                // Update View in GUI
+                mHandler.post(updateInfoViewTask);
+
             }
         } else if(SensorType == Sensor.TYPE_ROTATION_VECTOR) {
             angle = RotationSensor.getAngleRad();
-        }
-
-        // Update localization after collecting as much data as WINDOW SIZE
-        if(this.accelX.size() >= activityMonitoring.getWindowSize()) {
-            float dT = (float)(Double.valueOf(System.currentTimeMillis() - startTime)/1000d);
-
-            // Create runnable
-            RunUpdateLocalization runUpdateLocalization = new RunUpdateLocalization(angle,
-                    activityMonitoring, localizationMonitor, localizationView, compassGUI, dT);
-
-            // Update particle converged flag
-            isParticleConverged = localizationMonitor.isParticleHasConverged();
-
-            // Add runnable to queue
-            executor.submit(runUpdateLocalization);
-
-            // Scan Wifi while user is walking
-            if (activityType.getLast() == Type.WALKING) {
-                //wifiManager.startScan();
-            }
-
-            // Update View in GUI
-            mHandler.post(updateInfoViewTask);
         }
 }
 
