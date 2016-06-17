@@ -81,7 +81,6 @@ public class ActivityMonitoring {
 
     // Update activity based on acc data
     public void update(ArrayList<Float> x, ArrayList<Float> y, ArrayList<Float> z) {
-        Log.d(this.getClass().getSimpleName(), "AM updating");
         this.finished = false;
         nasc.setAccelerations(x, y, z);
         nasc.calculateMaxNACandTopt(this.tmin, this.tmax);
@@ -95,7 +94,6 @@ public class ActivityMonitoring {
         updateStepCount();
         updateStrideLength();
         this.finished = true;
-        Log.d(this.getClass().getSimpleName(), "AM updated");
     }
 
     public boolean isFinished() {

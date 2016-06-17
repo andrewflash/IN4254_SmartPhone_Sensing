@@ -86,7 +86,7 @@ public class Nasc {
         double[] arrNAC;
         arrNAC = new double[tmax-tmin+1];
 
-        Log.d(this.getClass().getSimpleName(), "normalizedAutoCorrelation i: "+tmin+" - "+tmax);
+//        Log.d(this.getClass().getSimpleName(), "normalizedAutoCorrelation i: "+tmin+" - "+tmax);
         for (i=tmin; i<=tmax; i++) {
             tempNAC = normalizedAutoCorrelation(i);
             if (!Double.isInfinite(tempNAC)) {

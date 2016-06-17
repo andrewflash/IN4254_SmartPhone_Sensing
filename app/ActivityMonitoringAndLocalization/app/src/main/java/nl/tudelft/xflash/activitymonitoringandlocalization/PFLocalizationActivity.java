@@ -206,16 +206,12 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     this.accelZ.remove(j);
                 }
                 this.numSample = 0;
-
-                Log.d(this.getClass().getSimpleName(), "accelSize: "+accelX.size()+", " +
-                        "AMWindowSize: " + activityMonitoring.getWindowSize());
                 // Create runnable
                 RunUpdateActivity runUpdateActivity = new RunUpdateActivity(accelX, accelY, accelZ,
                         activityMonitoring);
                 // Add runnable to queue
                 executor.submit(runUpdateActivity);
 
-                Log.d(this.getClass().getSimpleName(), "Updating localization");
                 float dT = (float)(Double.valueOf(System.currentTimeMillis() - startTime)/1000d);
 
                 // Create runnable
@@ -245,7 +241,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     // Observer
     @Override
     public void update(Observable observable, Object o) {
-        Log.d(this.getClass().getSimpleName(),"Receive WiFi update");
+//        Log.d(this.getClass().getSimpleName(),"Receive WiFi update");
 //        // If we receive update of wifi data
 //        } else {//if(observable == wifi.getObservable()){
 //            Log.d(this.getClass().getSimpleName(),"receiveWifi");
