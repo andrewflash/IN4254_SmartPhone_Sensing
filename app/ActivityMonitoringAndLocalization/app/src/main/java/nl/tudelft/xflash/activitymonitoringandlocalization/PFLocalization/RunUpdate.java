@@ -53,9 +53,13 @@ public class RunUpdate implements Runnable {
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
 
         // Update activity monitor
+        long startTime = System.nanoTime();
         this.activityMonitoring.update(accelX, accelY, accelZ);
+        long stopTime = System.nanoTime();
+        Log.d(this.getClass().getSimpleName(), "am update time: " + String.valueOf(stopTime - startTime));
 
         // Update localization monitor
+        startTime = System.nanoTime();
         if (this.localizationMonitor.update(angle,dT)) {
 
             // Check for convergence and change the color of particles
@@ -91,5 +95,7 @@ public class RunUpdate implements Runnable {
             });
 
         }
+        stopTime = System.nanoTime();
+        Log.d(this.getClass().getSimpleName(), "locmonitor update time: " + String.valueOf(stopTime - startTime));
     }
 }
