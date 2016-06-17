@@ -1,5 +1,7 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityMonitoring;

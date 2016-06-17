@@ -81,13 +81,18 @@ public class Nasc {
         int i;
         int j = 0;
         int maxIndex = 0;
-        int tOptimal = this.tOpt;
+        int tOptimal;
+        double tempNAC;
         double[] arrNAC;
         arrNAC = new double[tmax-tmin+1];
 
+//        Log.d(this.getClass().getSimpleName(), "normalizedAutoCorrelation i: "+tmin+" - "+tmax);
         for (i=tmin; i<=tmax; i++) {
-            arrNAC[j] = normalizedAutoCorrelation(i);
-            j++;
+            tempNAC = normalizedAutoCorrelation(i);
+            if (!Double.isInfinite(tempNAC)) {
+                arrNAC[j] = tempNAC;
+                j++;
+            }
         }
 
         for (i = 0; i < arrNAC.length; i++){
@@ -100,6 +105,13 @@ public class Nasc {
 
         Statistics stats = new Statistics(arrNAC);
         this.maxNac = stats.getMax();
+
+        if (tOptimal<50) {
+            tOptimal = 50;
+        } else if (tOptimal>90) {
+            tOptimal = 90;
+        }
+
         this.tOpt = tOptimal;
         this.tMin = tOptimal-10;
         this.tMax = tOptimal+10;
