@@ -48,11 +48,6 @@ public class LocalizationMonitor {
         activityList.empty();
     }
 
-    // Get floor layout
-    public FloorLayout getFloorLayout(){
-        return this.floorLayout;
-    }
-
     // Get particles list
     public ArrayList<Particle> getParticles(){
         return pf.getParticles();
@@ -64,14 +59,14 @@ public class LocalizationMonitor {
     }
 
     // Update the localization based on orientation data and step count
-    public boolean update(float angle, int stepCount){
+    public boolean update(float angle, int stepCount) {
 
         //Type activity = activityList.getType(activityList.size() - 1);
 
-        if(stepCount != 0) {
+        if (stepCount != 0) {
             this.angle = angle;
 
-            if(!particleHasConverged) {
+            if (!particleHasConverged) {
                 pf.movement(angle, stepCount);
             } else {
                 pf.movementBest(angle, stepCount);
@@ -84,30 +79,6 @@ public class LocalizationMonitor {
             mov[1] = 0;
             return false;
         }
-
-
-//        if (activity == Type.WALKING || activity == Type.IDLE) {
-//            this.angle = angle;
-//
-//            // If activity Type is WALKING, update the movement of particles
-//            if(activity == Type.WALKING) {
-//                if(!particleHasConverged) {
-//                    pf.movement(angle, stepCount);
-//                } else {
-//                    pf.movementBest(angle, stepCount);
-//                }
-//                mov = pf.getMovement();
-//            }
-//
-//            // If idle clear mov
-//            if(activity == Type.IDLE) {
-//                // Clear mov
-//                mov[0] = 0;
-//                mov[1] = 0;
-//            }
-//
-//            return true;
-//        }
     }
 
     // Set radius of convergence = 3

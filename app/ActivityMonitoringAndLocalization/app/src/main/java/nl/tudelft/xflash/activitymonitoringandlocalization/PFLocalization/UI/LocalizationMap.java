@@ -87,6 +87,7 @@ public class LocalizationMap extends View {
         particlePaint = new Paint();
         particlePaint.setStrokeWidth(4);
         particlePaint.setColor(Color.RED);
+        particlePaint.setStrokeCap(Paint.Cap.ROUND);
 
         wallPaint = new Paint();
         wallPaint.setStyle(Paint.Style.STROKE);
@@ -97,6 +98,7 @@ public class LocalizationMap extends View {
         convPaint.setStyle(Paint.Style.STROKE);
         convPaint.setColor(Color.BLUE);
         convPaint.setStrokeWidth(20);
+        convPaint.setStrokeCap(Paint.Cap.ROUND);
 
         // Pan and zoom
         mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
@@ -113,10 +115,14 @@ public class LocalizationMap extends View {
         particlePaint.setColor(Color.RED);
     }
 
+    // Clear particles
+    public void clearParticles(){
+        particles.clear();
+    }
+
     // Set particles (draw)
     public void setParticles(ArrayList<Particle> newParticles) {
         particles = new CopyOnWriteArrayList<Particle>(newParticles);
-        convParticle = null;
     }
 
     // Set converged particle location
@@ -132,19 +138,13 @@ public class LocalizationMap extends View {
 
         super.onDraw(canvas);
 
-        // Invert canvas (inverted in resource layout)
-        //Log.d(getClass().getSimpleName(),"Scale: " + height*size/2);
-        //canvas.scale(1,-1,width/2,200);
-
         // Draw walls
         canvas.drawPath(wall, wallPaint);
 
         // Draw converged particle
         if (convParticle != null) {
-            canvas.drawPoint(convParticle.getCurrentLocation().getX() * scale +
-                            offsetX, convParticle.getCurrentLocation().getY() * scale + offsetY,
-                    convPaint);
-            visitedPath.setPath(convParticle.getCurrentLocation());
+            canvas.drawPoint(convParticle.getCurrentLocation().getX() * scale + offsetX,
+                    convParticle.getCurrentLocation().getY() * scale + offsetY, convPaint);
             visitedPath.draw(canvas);
         } else {
             // Draw particles
