@@ -17,8 +17,11 @@ public class FloorLayout {
 
     private Location origin;
     private ArrayList<Wall> completeWalls;
+    private ArrayList<Cell> cells;
+    private ArrayList<String> cellNames;
     private Path wallPath;
     private Region floorRegion;
+    private ArrayList<RectF> cellRect;
     private int width;
     private int height;
     private static float northAngle;
@@ -29,7 +32,11 @@ public class FloorLayout {
 
         origin = floorPlan.getOrigin();
         completeWalls = floorPlan.getWalls();
+        cells = floorPlan.getCells();
+        cellNames = floorPlan.getCellNames();
         northAngle = floorPlan.getNorthAngle();
+
+        cellRect = new ArrayList<>();
     }
 
     public void generateLayout() {
@@ -51,6 +58,12 @@ public class FloorLayout {
 
         width = floorRegion.getBounds().width();
         height = floorRegion.getBounds().height();
+
+        // Create cells Area
+        for(Cell cell : cells){
+            cellRect.add(new RectF(cell.getOrigin().getX(),cell.getOrigin().getY(),
+                    cell.getOrigin().getX() + cell.getWidth(),cell.getOrigin().getY() + cell.getHeight()));
+        }
     }
 
     // calculate direction to find intersection, p=prevLoc, q=cur
@@ -96,6 +109,8 @@ public class FloorLayout {
         return wallPath;
     }
 
+    public ArrayList<RectF> getCellRectList() { return cellRect; }
+
     public static float getNorthAngle() {
         return northAngle;
     }
@@ -111,5 +126,21 @@ public class FloorLayout {
             return false;
         }
 
+    }
+
+    // Get cell name based on location
+    public String getCellNameFromLocation(Location loc) {
+        int idxFound = 0;
+        for(int i=0; i < cellRect.size(); i++){
+            if(cellRect.get(i).contains(loc.getX(), loc.getY()))
+                idxFound = i;
+                break;
+        }
+        return cells.get(idxFound).getCellName();
+    }
+
+    // Get cell names
+    public ArrayList<String> getCellNames(){
+        return cellNames;
     }
 }
