@@ -155,7 +155,7 @@ public class LocalizationMap extends View {
     protected void onDraw(Canvas canvas) {
         canvas.save();
         canvas.scale(mScaleFactor, mScaleFactor);
-        canvas.translate(translateX / mScaleFactor, translateY / mScaleFactor);
+        canvas.translate(translateX / mScaleFactor , translateY / mScaleFactor);
 
         super.onDraw(canvas);
 

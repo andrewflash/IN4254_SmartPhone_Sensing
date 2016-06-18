@@ -1,6 +1,7 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.util.ArrayList;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
@@ -110,5 +111,15 @@ public class LocalizationMonitor {
     // Get movement distance
     public float[] getMovement() {
         return mov;
+    }
+
+    // Get cell name from current location
+    public String getCellLocation(){
+        String cellName = "NONE";
+        if(isParticleHasConverged()){
+            Log.d(getClass().getSimpleName(),"LocationConv: " + pf.getParticles().get(0).getCurrentLocation().getX());
+            cellName = floorLayout.getCellNameFromLocation(pf.getParticles().get(0).getCurrentLocation());
+        }
+        return cellName;
     }
 }

@@ -84,6 +84,8 @@ public class ActivityMonitoring {
             this.finished = false;
             nasc.setAccelerations(x, y, z);
 
+            nasc.normalizeAcceleroArrayList(x,y,z);
+
             nasc.calculateMaxNACandTopt(this.tmin, this.tmax);
 
             this.tmin = nasc.gettMin();

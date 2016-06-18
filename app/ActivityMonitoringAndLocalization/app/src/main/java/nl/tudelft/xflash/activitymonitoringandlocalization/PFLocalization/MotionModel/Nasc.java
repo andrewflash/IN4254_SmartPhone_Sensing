@@ -156,6 +156,21 @@ public class Nasc {
         return arrNormAcceleroData;
     }
 
+    public ArrayList<Float> normalizeAcceleroArrayList(List<Float> acceleroDataX,
+                                                        List<Float> acceleroDataY,
+                                                        List<Float> acceleroDataZ) {
+
+        ArrayList<Float> normAccel = new ArrayList<>();
+
+        for(int i=0;i<acceleroDataX.size();i++){
+            normAccel.add((float)Math.sqrt(Math.pow(acceleroDataX.get(i),2) + Math.pow(acceleroDataY.get(i),2) +
+                    Math.pow(acceleroDataZ.get(i),2)));
+        }
+        Log.d(this.getClass().getSimpleName(),"AccelNorm: " + normAccel.toString());
+
+        return normAccel;
+    }
+
     public double stdevAccelero() {
         double stdev = 0.0;
         double[] arrAcceleroData;
