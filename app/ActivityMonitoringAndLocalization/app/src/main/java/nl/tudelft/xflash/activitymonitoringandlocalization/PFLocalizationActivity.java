@@ -445,7 +445,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
 
                         // Create runnable localization
                         RunUpdateLocalization runUpdateLocalization = new RunUpdateLocalization(
-                                angle, localizationMonitor, localizationView, compassGUI, stepCount);
+                                angle, localizationMonitor, localizationView, compassGUI, stepCount, getApplicationContext());
 
                         totalStep += stepCount;
                         stepCount = 0;
