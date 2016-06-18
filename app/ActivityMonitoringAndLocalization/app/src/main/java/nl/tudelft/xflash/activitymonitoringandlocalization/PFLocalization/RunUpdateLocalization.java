@@ -1,9 +1,13 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization;
 
+import android.content.Context;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityMonitoring;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Database.WifiDBHandler;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Database.WifiData;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.Location;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.ParticleFilter.Particle;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.CompassGUI;
@@ -26,10 +30,12 @@ public class RunUpdateLocalization implements Runnable {
     private LocalizationMap localizationMap;
     private CompassGUI compassGUI;
 
+    private Context context;
+
     private int stepCount;
 
     public RunUpdateLocalization(float angle, LocalizationMonitor locMon,
-                                 LocalizationMap locMap, CompassGUI compGUI, int stepCount)
+                                 LocalizationMap locMap, CompassGUI compGUI, int stepCount, Context context)
     {
         this.angle = angle;
         this.localizationMonitor = locMon;
@@ -38,6 +44,11 @@ public class RunUpdateLocalization implements Runnable {
         this.stepCount = stepCount;
         this.visitedPath = VisitedPath.getInstance();
         this.particleHasConverged = false;
+        this.context = context;
+    }
+
+    public Context getAppContext() {
+        return this.context;
     }
 
     @Override
@@ -59,6 +70,20 @@ public class RunUpdateLocalization implements Runnable {
                         }
                     });
                     localizationMonitor.setConvergedParticle(convergeParticle.getCurrentLocation());
+
+                    // storing RSSI values to database
+                    WifiData wifiData = new WifiData();
+                    wifiData.setX(convergeParticle.getCurrentLocation().getX());
+                    wifiData.setY(convergeParticle.getCurrentLocation().getX());
+                    wifiData.setZone();
+                    wifiData.set_ssid_0();
+                    wifiData.set_ssid_1();
+                    wifiData.set_ssid_2();
+                    wifiData.set_ssid_3();
+
+                    AddWifiData addWifiData = new AddWifiData(wifiData);
+                    addWifiData.execute();
+
                     particleHasConverged = true;
                     localizationMonitor.setParticleHasConverged(true);
                 }
@@ -85,4 +110,34 @@ public class RunUpdateLocalization implements Runnable {
             }
         });
     }
+
+    private class ClearWifiData extends AsyncTask<Object, Object, Object> {
+        WifiDBHandler dbConnector = new WifiDBHandler(getAppContext());
+
+        public ClearWifiData() { return; }
+
+        @Override
+        protected Object doInBackground(Object... params) {
+            // Open the database
+            dbConnector.clearWifiData();
+            return null;
+        }
+    }
+
+    private class AddWifiData extends AsyncTask<Object, Object, Object> {
+        WifiDBHandler dbConnector = new WifiDBHandler(getAppContext());
+        WifiData wifiData_this;
+
+        public AddWifiData(WifiData wifiData) {
+            wifiData_this = wifiData;
+        }
+
+        @Override
+        protected Object doInBackground(Object... params) {
+            // Open the database
+            dbConnector.addWifiData(wifiData_this);
+            return null;
+        }
+    }
+
 }
