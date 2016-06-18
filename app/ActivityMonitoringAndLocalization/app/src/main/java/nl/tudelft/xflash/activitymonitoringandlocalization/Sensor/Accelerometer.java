@@ -11,8 +11,7 @@ import android.util.Log;
 public class Accelerometer extends AbstractSensor {
 
     private static float[] gravity = {0f,0f,0f};
-    private static float[] linear_acceleration = {0f,0f,0f};
-    private static final float alpha = 0.8f; // alpha filter
+    private static final float alpha = 0.1f; // alpha filter, low-pass filter
 
     public Accelerometer(SensorManager sm){
         super(sm);
@@ -37,17 +36,9 @@ public class Accelerometer extends AbstractSensor {
     public void onSensorChanged(SensorEvent event){
         // Check if changed sensor is the Accelerometer.
         if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
-            float[] gravityComp = {0f,0f,0f};
-            gravityComp[0] = alpha * gravityComp[0] + (1 - alpha) * event.values[0];
-            gravityComp[1] = alpha * gravityComp[1] + (1 - alpha) * event.values[1];
-            gravityComp[2] = alpha * gravityComp[2] + (1 - alpha) * event.values[2];
-
-            linear_acceleration[0] = event.values[0] - gravityComp[0];
-            linear_acceleration[1] = event.values[1] - gravityComp[1];
-            linear_acceleration[2] = event.values[2] - gravityComp[2];
-
-            // Gravity only
-            System.arraycopy(event.values, 0, gravity, 0, 3);
+            gravity[0] = (1.0f - alpha)*gravity[0] + alpha*event.values[0];
+            gravity[1] = (1.0f - alpha)*gravity[1] + alpha*event.values[1];
+            gravity[2] = (1.0f - alpha)*gravity[2] + alpha*event.values[2];
 
             this.notifyObserver(Sensor.TYPE_ACCELEROMETER);
         }
@@ -57,5 +48,5 @@ public class Accelerometer extends AbstractSensor {
         return gravity;
     }
 
-    public static float[] getLinearAcceleration() { return linear_acceleration; }
+
 }

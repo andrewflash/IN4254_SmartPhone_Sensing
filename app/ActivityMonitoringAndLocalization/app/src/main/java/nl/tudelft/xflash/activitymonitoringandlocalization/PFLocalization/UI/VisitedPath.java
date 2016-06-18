@@ -60,7 +60,7 @@ public class VisitedPath {
         this.dy.add(dy);
     }
 
-    public void setPath(Location convLoc) {
+    public void setPathVisited(Location convLoc) {
         pathVisited.reset();
         pathX.clear();
         pathY.clear();
@@ -95,6 +95,15 @@ public class VisitedPath {
             // Transform to GUI
             this.transform();
         }
+    }
+
+    public void setPath(Location convLoc){
+        float x = convLoc.getX();
+        float y = convLoc.getY();
+
+        pathVisited.lineTo(x, y);
+        // Transform to GUI
+        this.transform();
     }
 
     public void setOffset(float offsetX, float offSetY){

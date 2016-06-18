@@ -51,13 +51,13 @@ public class RunUpdateLocalization implements Runnable {
                 convergedLoc = localizationMonitor.particleConverged();
                 if (convergedLoc != null) {
                     final Particle convergeParticle = localizationMonitor.forceConverge();
+                    visitedPath.setPathVisited(convergeParticle.getCurrentLocation());
                     this.localizationMap.post(new Runnable() {
                         @Override
                         public void run() {
                             localizationMap.setConvLocation(convergeParticle);
                         }
                     });
-                    visitedPath.setPath(convergeParticle.getCurrentLocation());
                     localizationMonitor.setConvergedParticle(convergeParticle.getCurrentLocation());
                     particleHasConverged = true;
                     localizationMonitor.setParticleHasConverged(true);
@@ -66,19 +66,14 @@ public class RunUpdateLocalization implements Runnable {
                 if(stepCount != 0){
                     this.localizationMap.setParticles(this.localizationMonitor.getParticles());
                 }
-            } else {
-                // Set values like particles and the direction
-                if(stepCount != 0){
-                    final Particle convLoc = this.localizationMonitor.getParticles().get(0);
-                    this.localizationMap.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            localizationMap.setConvLocation(convLoc);
-                        }
-                    });
-                }
             }
 
+            localizationMap.post(new Runnable() {
+                @Override
+                public void run() {
+                    localizationMap.invalidate();
+                }
+            });
         }
 
         compassGUI.setAngle(angle);
@@ -87,13 +82,6 @@ public class RunUpdateLocalization implements Runnable {
             @Override
             public void run() {
                 compassGUI.invalidate();
-            }
-        });
-
-        localizationMap.post(new Runnable() {
-            @Override
-            public void run() {
-                localizationMap.invalidate();
             }
         });
     }

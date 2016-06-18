@@ -61,7 +61,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     // Sensors
     private SensorManager sensorManager;
     private RotationSensor orientation;
-    private LinearAccelero accelerometer;
+    private Accelerometer accelerometer;
     private WifiManager wifiManager;
     private WiFi wifi;
 
@@ -202,11 +202,11 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             startTime = System.currentTimeMillis();
         }
 
-        if(SensorType == Sensor.TYPE_LINEAR_ACCELERATION) {
+        if(SensorType == Sensor.TYPE_ACCELEROMETER) {
             // Collect accelero data as large as WINDOW SIZE
-            this.accelX.add(LinearAccelero.getLinearAcceleration()[0]);
-            this.accelY.add(LinearAccelero.getLinearAcceleration()[1]);
-            this.accelZ.add(LinearAccelero.getLinearAcceleration()[2]);
+            this.accelX.add(Accelerometer.getGravity()[0]);
+            this.accelY.add(Accelerometer.getGravity()[1]);
+            this.accelZ.add(Accelerometer.getGravity()[2]);
             this.numSample = this.numSample + 1;
 
             if(activityMonitoring.getActivity() == Type.WALKING) {
@@ -273,7 +273,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         display.getSize(screenSize);
 
         // Initialize localization view in landscape mode
-        localizationView = new LocalizationMap(this, floorLayout.getPath(), localizationMonitor.getParticles(), screenSize.x, screenSize.y);
+        localizationView = new LocalizationMap(this, floorLayout.getPath(),
+                localizationMonitor.getParticles(), screenSize.x, screenSize.y);
+        localizationView.clearParticles();
 
         // Initialize compass view
         compassGUI = new CompassGUI(this,100,100);
@@ -310,7 +312,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
         // Accelerometer
-        accelerometer = new LinearAccelero(sensorManager);
+        accelerometer = new Accelerometer(sensorManager);
         accelerometer.attach(this);
 
         // Orientation
@@ -384,7 +386,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     }
 
     public void updateInfoView() {
-        txtAngle.setText(d.format(Math.toDegrees(angle)) + '\u00B0');
+        txtAngle.setText(di.format(Math.toDegrees(angle)) + '\u00B0');
         txtTotalStep.setText(di.format(totalStep));
         txtdX.setText(d.format(localizationMonitor.getMovement()[0]) + " m");
         txtdY.setText(d.format(localizationMonitor.getMovement()[1]) + " m");
@@ -393,6 +395,8 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         if(isParticleConverged) {
             initInitialBeliefPA = false;
             btnInitialBeliefPA.setText("INITIAL BELIEF PA");
+            btnInitialBeliefPA.setEnabled(false);
+            btnInitialBeliefPA.setClickable(false);
         }
 
         //this.compassGUI.invalidate();
@@ -456,7 +460,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 });
             }
         };
-        schedulerTimer.scheduleAtFixedRate(task,0,500);
+        schedulerTimer.scheduleAtFixedRate(task,0,250);
     }
 
 }

@@ -152,10 +152,13 @@ public class ParticleFilter {
             mov = distanceModelZee.getDistance(alpha,stepCount);
             p.updateLocation(mov[0], mov[1]);
             // Check particle collision with walls
-            if(!floorLayout.detectCollision(p) && floorLayout.isParticleInside(p)) {
-                dx.add(mov[0]);
-                dy.add(mov[1]);
+            if(floorLayout.detectCollision(p) || !floorLayout.isParticleInside(p)) {
+                mov[0] = 0;
+                mov[1] = 0;
+                p.setCurrentLocation(p.getPreviousLocation());
             }
+            dx.add(mov[0]);
+            dy.add(mov[1]);
         }
 
         // New movement (not yet converged), then update the path

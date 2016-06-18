@@ -10,7 +10,9 @@ import android.util.Log;
  */
 public class RotationSensor extends AbstractSensor {
     private static float[] orientation = {0f,0f,0f};
+    private static float[] sensorValues = {0f,0f,0f,0f,0f};
     private static float angle = 0;
+    private static final float alpha = 0.1f;       // Low-pass filter
 
     private float[] rotationMatrix;
 
@@ -39,29 +41,18 @@ public class RotationSensor extends AbstractSensor {
     public void onSensorChanged(SensorEvent sensorEvent) {
         // Calculate orientation
         if(sensorEvent.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
-            SensorManager.getRotationMatrixFromVector(rotationMatrix, sensorEvent.values);
+            for(int i=0; i < sensorValues.length; i++){
+                sensorValues[i] = (1.0f - alpha)*sensorValues[i] + alpha*sensorEvent.values[i];
+            }
+            SensorManager.getRotationMatrixFromVector(rotationMatrix, sensorValues);
             //SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X,
             //        SensorManager.AXIS_Z, rotationMatrix);
             SensorManager.getOrientation(rotationMatrix, orientation);
 
-            angle = ((float) (Math.toDegrees(orientation[0]))+360f) % 360f; //important
-            //angle = (float)Math.toDegrees(orientation[0]);
+            angle = ((float) (Math.toDegrees(orientation[0]))+360f) % 360f;
 
             this.notifyObserver(Sensor.TYPE_ROTATION_VECTOR);
         }
-    }
-
-    public static float[] getOrientationDeg(){
-        float[] orientationDegree = {((float)Math.toDegrees(orientation[0]) + 360f) % 360f,
-                (float)Math.toDegrees(orientation[1]),
-                (float)Math.toDegrees(orientation[2])};
-        return orientationDegree;
-    }
-
-    public static float[] getOrientationRad(){
-        float[] orientationRad = {(float)(orientation[0] + Math.PI*2) % (float)(Math.PI*2),
-                orientation[1],orientation[2]};
-        return orientationRad;
     }
 
     public static float getAngleDeg() { return angle; }
