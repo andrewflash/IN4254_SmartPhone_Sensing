@@ -22,6 +22,7 @@ public class FloorLayout {
     private Path wallPath;
     private Region floorRegion;
     private ArrayList<RectF> cellRect;
+    private ArrayList<Region> cellRegion;
     private int width;
     private int height;
     private static float northAngle;
@@ -37,6 +38,7 @@ public class FloorLayout {
         northAngle = floorPlan.getNorthAngle();
 
         cellRect = new ArrayList<>();
+        cellRegion = new ArrayList<>();
     }
 
     public void generateLayout() {
@@ -61,8 +63,11 @@ public class FloorLayout {
 
         // Create cells Area
         for(Cell cell : cells){
-            cellRect.add(new RectF(cell.getOrigin().getX(),cell.getOrigin().getY(),
-                    cell.getOrigin().getX() + cell.getWidth(),cell.getOrigin().getY() + cell.getHeight()));
+            RectF cellRectNew = new RectF(cell.getOrigin().getX(),cell.getOrigin().getY(),
+                    cell.getOrigin().getX() + cell.getWidth(),cell.getOrigin().getY() + cell.getHeight());
+            cellRect.add(cellRectNew);
+            cellRegion.add(new Region((int)cellRectNew.left,(int)cellRectNew.top,
+                    (int)cellRectNew.right,(int)cellRectNew.bottom));
         }
     }
 
@@ -130,17 +135,20 @@ public class FloorLayout {
 
     // Get cell name based on location
     public String getCellNameFromLocation(Location loc) {
-        int idxFound = 0;
-        for(int i=0; i < cellRect.size(); i++){
-            if(cellRect.get(i).contains(loc.getX(), loc.getY()))
-                idxFound = i;
-                break;
+        for(int i=0; i < cellRegion.size(); i++){
+            if(cellRegion.get(i).contains((int)loc.getX(), (int)loc.getY())){
+                return cells.get(i).getCellName();
+            }
         }
-        return cells.get(idxFound).getCellName();
+        return "NONE";
     }
 
     // Get cell names
     public ArrayList<String> getCellNames(){
+        ArrayList<String> cellNames = new ArrayList<>();
+        for(Cell cell : cells){
+            cellNames.add(cell.getCellName());
+        }
         return cellNames;
     }
 }
