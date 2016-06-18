@@ -74,6 +74,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     // Windows size of accelerometer and orientation sensor
     public static final int SAMPLING_RATE_ACC = 20000; // 50 Hz (1/20000 us)
     public static final int SAMPLING_RATE_ORIENTATION = 20000; // 50 Hz (1/20000 us)
+    private int curWindowSize;
 
     // Sample size of accelerometer
     private static final int ACC_SAMPLE = 10;
@@ -86,9 +87,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private int totalStep;
     private int stepSamples;
     private int stepCount;
-
-    // Timing for calculating window
-    private long startTime;
 
     // Thread Queue
     private ExecutorService executor;
@@ -198,11 +196,8 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     @Override
     public void update(int SensorType) {
 
-        if(this.accelX.size() == 0){
-            startTime = System.currentTimeMillis();
-        }
-
         if(SensorType == Sensor.TYPE_ACCELEROMETER) {
+
             // Collect accelero data as large as WINDOW SIZE
             this.accelX.add(Accelerometer.getGravity()[0]);
             this.accelY.add(Accelerometer.getGravity()[1]);
@@ -232,7 +227,12 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 executor.submit(runUpdateActivity);
             }
         } else if(SensorType == Sensor.TYPE_ROTATION_VECTOR) {
+            float prevAngle = angle;
             angle = RotationSensor.getAngleRad();
+            // Prevent spike
+            if(Math.abs(angle - prevAngle) > Math.toRadians(180)){
+                angle = prevAngle;
+            }
         }
     }
 
@@ -274,6 +274,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
 
         // Initialize localization view in landscape mode
         localizationView = new LocalizationMap(this, floorLayout.getPath(),
+                floorLayout.getCellNames(),floorLayout.getCellRectList(),
                 localizationMonitor.getParticles(), screenSize.x, screenSize.y);
         localizationView.clearParticles();
 

@@ -3,12 +3,14 @@ package nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.support.v4.view.ViewCompat;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -28,6 +30,8 @@ public class LocalizationMap extends View {
 
     private Path wall;
     private CopyOnWriteArrayList<Particle> particles;
+    private ArrayList<RectF> cellRectList;
+    private ArrayList<String> cellNames;
     private Particle convParticle = null;
 
     private final float size = 0.98f;       // Add padding 0.02
@@ -38,7 +42,7 @@ public class LocalizationMap extends View {
     private VisitedPath visitedPath;
 
     private Matrix scaleMatrix;
-    private Paint particlePaint, wallPaint, convPaint;
+    private Paint particlePaint, wallPaint, convPaint, cellPaint, cellTextPaint;
 
     // Pan and zoom
     private ScaleGestureDetector mScaleDetector;
@@ -56,7 +60,9 @@ public class LocalizationMap extends View {
     private float previousTranslateY = 0f;
     private boolean dragged = false;
 
-    public LocalizationMap(Context context, Path floorLayout, ArrayList<Particle> particles, float width, float height) {
+    public LocalizationMap(Context context, Path floorLayout,
+                           ArrayList<String> cellNames, ArrayList<RectF> cellRectList,
+                           ArrayList<Particle> particles, float width, float height) {
         super(context);
 
         this.wall = floorLayout;
@@ -65,6 +71,8 @@ public class LocalizationMap extends View {
 
         this.particles = new CopyOnWriteArrayList<Particle>(particles);
         this.visitedPath = VisitedPath.getInstance();
+        this.cellRectList = cellRectList;
+        this.cellNames = cellNames;
 
         // Create wall, initialize scaling matrix
         scaleMatrix = new Matrix();
@@ -93,6 +101,19 @@ public class LocalizationMap extends View {
         wallPaint.setStyle(Paint.Style.STROKE);
         wallPaint.setColor(Color.BLACK);
         wallPaint.setStrokeWidth(3);
+
+        cellPaint = new Paint();
+        cellPaint.setStyle(Paint.Style.STROKE);
+        cellPaint.setColor(Color.BLACK);
+        cellPaint.setStrokeWidth(1);
+        cellPaint.setPathEffect(new DashPathEffect(new float[]{5,5},0));
+
+        cellTextPaint = new Paint();
+        cellTextPaint.setTextAlign(Paint.Align.CENTER);
+        cellTextPaint.setColor(Color.BLACK);
+        cellTextPaint.setTextSize(20f);
+        cellTextPaint.setTypeface(Typeface.MONOSPACE);
+        cellTextPaint.setTextScaleX(-1f);
 
         convPaint = new Paint();
         convPaint.setStyle(Paint.Style.STROKE);
@@ -137,6 +158,16 @@ public class LocalizationMap extends View {
         canvas.translate(translateX / mScaleFactor, translateY / mScaleFactor);
 
         super.onDraw(canvas);
+
+        // Draw cell area
+        for (int i=0; i<cellNames.size(); i++){
+            canvas.drawRect(cellRectList.get(i).left*scale + offsetX,cellRectList.get(i).top*scale + offsetY,
+                    cellRectList.get(i).right*scale + offsetX, cellRectList.get(i).bottom*scale + offsetY,cellPaint);
+            canvas.drawText(cellNames.get(i),
+                    cellRectList.get(i).left*scale + offsetX + cellRectList.get(i).width()*scale/2,
+                    cellRectList.get(i).top*scale + offsetY + cellRectList.get(i).height()*scale/2,
+                    cellTextPaint);
+        }
 
         // Draw walls
         canvas.drawPath(wall, wallPaint);

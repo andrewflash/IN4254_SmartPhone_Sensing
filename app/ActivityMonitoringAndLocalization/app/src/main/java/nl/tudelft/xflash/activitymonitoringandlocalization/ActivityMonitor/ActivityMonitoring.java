@@ -60,7 +60,7 @@ public class ActivityMonitoring {
         // calculate maxNAC
         maxNAC = nasc.getMaxNac();
 
-        if(stdevAcc < 0.3) {
+        if(stdevAcc < 0.1) {
             state = Type.IDLE;
         }
         if(maxNAC > 0.7) {
