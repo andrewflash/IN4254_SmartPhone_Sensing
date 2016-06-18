@@ -110,6 +110,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private TextView txtdX;
     private TextView txtdY;
     private TextView txtTotalStep;
+    private TextView txtLocation;
 
     // Update View
     public Handler mHandler;
@@ -214,9 +215,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
 
             if (this.accelX.size() >= activityMonitoring.getWindowSize() && this.numSample >= ACC_SAMPLE) {
                 for (int j=0; j<ACC_SAMPLE; j++) {
-                    this.accelX.remove(j);
-                    this.accelY.remove(j);
-                    this.accelZ.remove(j);
+                    this.accelX.remove(0);
+                    this.accelY.remove(0);
+                    this.accelZ.remove(0);
                 }
                 this.numSample = 0;
 
@@ -230,7 +231,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             float prevAngle = angle;
             angle = RotationSensor.getAngleRad();
             // Prevent spike
-            if(Math.abs(angle - prevAngle) > Math.toRadians(180)){
+            if(Math.abs(angle - prevAngle) > Math.toRadians(300)){
                 angle = prevAngle;
             }
         }
@@ -298,6 +299,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         txtdX = (TextView)findViewById(R.id.txtdX);
         txtdY = (TextView)findViewById(R.id.txtdY);
         txtTotalStep = (TextView)findViewById(R.id.txtTotalStep);
+        txtLocation = (TextView)findViewById(R.id.txtCellLocation);
     }
 
     private void initSensors() {
@@ -392,6 +394,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         txtdX.setText(d.format(localizationMonitor.getMovement()[0]) + " m");
         txtdY.setText(d.format(localizationMonitor.getMovement()[1]) + " m");
         txtActivityPF.setText(activityMonitoring.getActivity().toString());
+        txtLocation.setText(localizationMonitor.getCellLocation());
 
         if(isParticleConverged) {
             initInitialBeliefPA = false;

@@ -112,7 +112,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="85"
+                    android:layout_weight="10"
                     android:id="@+id/lblActivityPF"
                     android:text="@string/lbl_activity_PF"
                     />
@@ -120,8 +120,24 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="15"
+                    android:layout_weight="10"
                     android:id="@+id/txtActivityPF"
+                    android:text=""
+                    />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="10"
+                    android:id="@+id/lblCellLocation"
+                    android:text="@string/lbl_location"
+                    />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="10"
+                    android:id="@+id/txtCellLocation"
                     android:text=""
                     />
 
