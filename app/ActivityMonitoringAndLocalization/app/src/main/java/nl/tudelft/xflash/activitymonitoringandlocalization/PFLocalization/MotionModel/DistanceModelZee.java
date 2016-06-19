@@ -10,7 +10,6 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorL
  * Created by tritronik on 5/26/2016.
  */
 public class DistanceModelZee {
-    private int stepCount;
     private float strideLength = 0.3f;
     private Random rand;
     private FloorLayout floorLayout;
@@ -21,16 +20,8 @@ public class DistanceModelZee {
         rand = new Random();
     }
 
-    public void setStepCount(int stepCount) {
-        this.stepCount = stepCount;
-    }
-
-    public void setStrideLength(float strideLength) {
-        this.strideLength = strideLength;
-    }
-
     // Estimate distance (dx and dy)
-    public float[] getDistance(float alpha, int stepCount) {
+    public float[] getDistance(float alpha, int stepCount, float strideLength) {
         //Gaussian distribution of mean alpha and stdev alphaDeviation
         //float alphaDeviation = 0.8859f;   // in radians
         float alphaDeviation = 0.1f;   // in radians
@@ -40,9 +31,11 @@ public class DistanceModelZee {
         float alphaNoise = alpha + (float)Math.toRadians(floorLayout.getNorthAngle())
                 + alphaMean + (float) rand.nextGaussian()*alphaDeviation;
 
+        float randerr = (float) (Math.random() * (0.1 + 0.1) -0.1)*strideLength;
+
         // Caluclate the dx/dy based on the window size and alpha
-        float dx = stepCount*this.strideLength * (float) Math.cos(alphaNoise);
-        float dy = stepCount*this.strideLength * (float) Math.sin(alphaNoise);
+        float dx = stepCount*(strideLength+randerr) * (float) Math.cos(alphaNoise);
+        float dy = stepCount*(strideLength+randerr) * (float) Math.sin(alphaNoise);
         float[] out = {dx,dy};
 
         return out;

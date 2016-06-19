@@ -99,6 +99,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private int stepSamples;
     private int stepCount;
 
+    // Stride Length
+    private float strideLength;
+
     // Timer Scheduler
     private Timer schedulerTimerWifi;
     private Timer schedulerTimerLocalization;
@@ -549,9 +552,12 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     public void run() {
                         activityMonitoring.clearStepCountList();
 
+                        strideLength = localizationMonitor.getParticles().get(0).getCurrentStride();
+                        Log.d(this.getClass().getSimpleName(),"strideLength: "+strideLength);
                         // Create runnable localization
                         RunUpdateLocalization runUpdateLocalization = new RunUpdateLocalization(
-                                angle, localizationMonitor, localizationView, compassGUI, stepCount, getApplicationContext());
+                                angle, localizationMonitor, localizationView, compassGUI, stepCount,
+                                strideLength, getApplicationContext());
 
                         totalStep += stepCount;
                         stepCount = 0;
