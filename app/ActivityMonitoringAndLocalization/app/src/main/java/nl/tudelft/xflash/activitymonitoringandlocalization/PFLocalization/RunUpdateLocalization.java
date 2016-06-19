@@ -70,20 +70,6 @@ public class RunUpdateLocalization implements Runnable {
                         }
                     });
                     localizationMonitor.setConvergedParticle(convergeParticle.getCurrentLocation());
-
-                    // storing RSSI values to database
-                    WifiData wifiData = new WifiData();
-                    wifiData.setX(convergeParticle.getCurrentLocation().getX());
-                    wifiData.setY(convergeParticle.getCurrentLocation().getX());
-                    wifiData.setZone();
-                    wifiData.set_ssid_0();
-                    wifiData.set_ssid_1();
-                    wifiData.set_ssid_2();
-                    wifiData.set_ssid_3();
-
-                    AddWifiData addWifiData = new AddWifiData(wifiData);
-                    addWifiData.execute();
-
                     particleHasConverged = true;
                     localizationMonitor.setParticleHasConverged(true);
                 }
@@ -109,35 +95,6 @@ public class RunUpdateLocalization implements Runnable {
                 compassGUI.invalidate();
             }
         });
-    }
-
-    private class ClearWifiData extends AsyncTask<Object, Object, Object> {
-        WifiDBHandler dbConnector = new WifiDBHandler(getAppContext());
-
-        public ClearWifiData() { return; }
-
-        @Override
-        protected Object doInBackground(Object... params) {
-            // Open the database
-            dbConnector.clearWifiData();
-            return null;
-        }
-    }
-
-    private class AddWifiData extends AsyncTask<Object, Object, Object> {
-        WifiDBHandler dbConnector = new WifiDBHandler(getAppContext());
-        WifiData wifiData_this;
-
-        public AddWifiData(WifiData wifiData) {
-            wifiData_this = wifiData;
-        }
-
-        @Override
-        protected Object doInBackground(Object... params) {
-            // Open the database
-            dbConnector.addWifiData(wifiData_this);
-            return null;
-        }
     }
 
 }

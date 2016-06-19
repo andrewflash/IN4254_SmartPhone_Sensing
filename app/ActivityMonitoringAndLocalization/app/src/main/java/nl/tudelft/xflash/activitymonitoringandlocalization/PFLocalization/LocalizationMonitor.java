@@ -117,7 +117,6 @@ public class LocalizationMonitor {
     public String getCellLocation(){
         String cellName = "NONE";
         if(isParticleHasConverged()){
-            Log.d(getClass().getSimpleName(),"LocationConv: " + pf.getParticles().get(0).getCurrentLocation().getX());
             cellName = floorLayout.getCellNameFromLocation(pf.getParticles().get(0).getCurrentLocation());
         }
         return cellName;

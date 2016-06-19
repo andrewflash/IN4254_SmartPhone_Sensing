@@ -4,7 +4,6 @@ import android.app.Activity;
 
 import java.util.Random;
 
-import nl.tudelft.xflash.activitymonitoringandlocalization.Database.AcceleroDBHandler;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
 
 /**

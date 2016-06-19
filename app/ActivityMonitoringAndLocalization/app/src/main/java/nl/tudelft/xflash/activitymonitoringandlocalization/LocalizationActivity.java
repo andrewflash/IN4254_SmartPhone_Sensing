@@ -233,7 +233,6 @@ public class LocalizationActivity extends AppCompatActivity implements Observer 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        wifiReceiver.clear();
         try {
             unregisterReceiver(wifiReceiver);
         } catch (Exception e) {
