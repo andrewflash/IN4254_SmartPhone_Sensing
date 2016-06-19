@@ -27,10 +27,7 @@ public class WifiDBHandler extends SQLiteOpenHelper {
     private static final String KEY_X = "x";
     private static final String KEY_Y = "y";
     private static final String KEY_ZONE = "zone";
-    private static final String KEY_SSID_0 = "s0";
-    private static final String KEY_SSID_1 = "s1";
-    private static final String KEY_SSID_2 = "s2";
-    private static final String KEY_SSID_3 = "s3";
+    private static final String KEY_SSID = "ssid";
     private static final String KEY_TIMESTAMP = "time";
 
     public WifiDBHandler(Context context) {
@@ -41,8 +38,7 @@ public class WifiDBHandler extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String CREATE_WIFI_TABLE = "CREATE TABLE " + TABLE_WIFI + "("
                 + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + KEY_X + " REAL,"
-                + KEY_Y + " REAL," + KEY_ZONE + " STRING," + KEY_SSID_0 + " REAL,"
-                + KEY_SSID_1 + " REAL," + KEY_SSID_2 + " REAL," + KEY_SSID_3 + " REAL,"
+                + KEY_Y + " REAL," + KEY_ZONE + " STRING," + KEY_SSID + " TEXT,"
                 + KEY_TIMESTAMP + " INTEGER" + ")";
         db.execSQL(CREATE_WIFI_TABLE);
     }
@@ -63,10 +59,7 @@ public class WifiDBHandler extends SQLiteOpenHelper {
         values.put(KEY_X, wifiData.getX());
         values.put(KEY_Y, wifiData.getY());
         values.put(KEY_ZONE, wifiData.getZone());
-        values.put(KEY_SSID_0, wifiData.get_ssid_0());
-        values.put(KEY_SSID_1, wifiData.get_ssid_1());
-        values.put(KEY_SSID_2, wifiData.get_ssid_2());
-        values.put(KEY_SSID_3, wifiData.get_ssid_3());
+        values.put(KEY_SSID, wifiData.get_ssid());
         values.put(KEY_TIMESTAMP, System.currentTimeMillis());
         // Inserting Row
         db.insert(TABLE_WIFI, null, values);
@@ -77,8 +70,7 @@ public class WifiDBHandler extends SQLiteOpenHelper {
     public WifiData getWifiData(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_WIFI, new String[]{KEY_ID,
-                        KEY_X, KEY_Y, KEY_ZONE, KEY_SSID_0, KEY_SSID_1,
-                        KEY_SSID_2, KEY_SSID_3, KEY_TIMESTAMP}, KEY_ID + "=?",
+                        KEY_X, KEY_Y, KEY_ZONE, KEY_SSID, KEY_TIMESTAMP}, KEY_ID + "=?",
                 new String[]{String.valueOf(id)}, null, null, null, null);
         if (cursor != null)
             cursor.moveToFirst();
@@ -87,11 +79,8 @@ public class WifiDBHandler extends SQLiteOpenHelper {
         wifiData.setX(Double.parseDouble(cursor.getString(1)));
         wifiData.setY(Double.parseDouble(cursor.getString(2)));
         wifiData.setZone(cursor.getString(3));
-        wifiData.set_ssid_0(Double.parseDouble(cursor.getString(4)));
-        wifiData.set_ssid_1(Double.parseDouble(cursor.getString(5)));
-        wifiData.set_ssid_2(Double.parseDouble(cursor.getString(6)));
-        wifiData.set_ssid_3(Double.parseDouble(cursor.getString(7)));
-        wifiData.setTime(Long.parseLong(cursor.getString(8)));
+        wifiData.set_ssid(cursor.getString(4));
+        wifiData.setTime(Long.parseLong(cursor.getString(5)));
 // return wifiData
         return wifiData;
     }
@@ -112,11 +101,8 @@ public class WifiDBHandler extends SQLiteOpenHelper {
                 wifiData.setX(Double.parseDouble(cursor.getString(1)));
                 wifiData.setY(Double.parseDouble(cursor.getString(2)));
                 wifiData.setZone(cursor.getString(3));
-                wifiData.set_ssid_0(Double.parseDouble(cursor.getString(4)));
-                wifiData.set_ssid_1(Double.parseDouble(cursor.getString(5)));
-                wifiData.set_ssid_2(Double.parseDouble(cursor.getString(6)));
-                wifiData.set_ssid_3(Double.parseDouble(cursor.getString(7)));
-                wifiData.setTime(Long.parseLong(cursor.getString(8)));
+                wifiData.set_ssid(cursor.getString(4));
+                wifiData.setTime(Long.parseLong(cursor.getString(5)));
 // Adding wifiData to list
                 wifiDataList.add(wifiData);
             } while (cursor.moveToNext());
@@ -143,12 +129,9 @@ public class WifiDBHandler extends SQLiteOpenHelper {
                 wifiData.setX(Double.parseDouble(cursor.getString(1)));
                 wifiData.setY(Double.parseDouble(cursor.getString(2)));
                 wifiData.setZone(cursor.getString(3));
-                wifiData.set_ssid_0(Double.parseDouble(cursor.getString(4)));
-                wifiData.set_ssid_1(Double.parseDouble(cursor.getString(5)));
-                wifiData.set_ssid_2(Double.parseDouble(cursor.getString(6)));
-                wifiData.set_ssid_3(Double.parseDouble(cursor.getString(7)));
-                wifiData.setTime(Long.parseLong(cursor.getString(8)));
-// Adding wifiData to list
+                wifiData.set_ssid(cursor.getString(4));
+                wifiData.setTime(Long.parseLong(cursor.getString(5)));
+                // Adding wifiData to list
                 wifiDataList.add(wifiData);
             } while (cursor.moveToNext());
         }
@@ -172,10 +155,7 @@ public class WifiDBHandler extends SQLiteOpenHelper {
         values.put(KEY_X, wifiData.getX());
         values.put(KEY_Y, wifiData.getY());
         values.put(KEY_ZONE, wifiData.getZone());
-        values.put(KEY_SSID_0, wifiData.get_ssid_0());
-        values.put(KEY_SSID_1, wifiData.get_ssid_1());
-        values.put(KEY_SSID_2, wifiData.get_ssid_2());
-        values.put(KEY_SSID_3, wifiData.get_ssid_3());
+        values.put(KEY_SSID, wifiData.get_ssid());
         values.put(KEY_TIMESTAMP, wifiData.getTime());
 
 // updating row
