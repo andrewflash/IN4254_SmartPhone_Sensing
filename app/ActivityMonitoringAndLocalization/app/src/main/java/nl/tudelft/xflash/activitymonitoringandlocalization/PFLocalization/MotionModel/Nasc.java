@@ -166,7 +166,6 @@ public class Nasc {
             normAccel.add((float)Math.sqrt(Math.pow(acceleroDataX.get(i),2) + Math.pow(acceleroDataY.get(i),2) +
                     Math.pow(acceleroDataZ.get(i),2)));
         }
-        Log.d(this.getClass().getSimpleName(),"AccelNorm: " + normAccel.toString());
 
         return normAccel;
     }

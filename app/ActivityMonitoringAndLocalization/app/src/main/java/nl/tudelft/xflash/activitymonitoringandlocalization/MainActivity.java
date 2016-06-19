@@ -7,7 +7,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-import nl.tudelft.xflash.activitymonitoringandlocalization.Database.AcceleroDBHandler;
 
 public class MainActivity extends AppCompatActivity {
 

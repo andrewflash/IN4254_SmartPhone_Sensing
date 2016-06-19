@@ -18,8 +18,6 @@ import java.util.concurrent.Executors;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityMonitoring;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.ObserverSensor;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Database.AcceleroDBHandler;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Database.AcceleroData;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Database.Writer;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.Accelerometer;
 
@@ -33,7 +31,7 @@ public class ActivityMonActivity extends AppCompatActivity implements ObserverSe
 
     // Flag
     private boolean initAccel = false;
-    private AcceleroDBHandler dbConnector;
+
     // View
     private Button btnStartStanding, btnStartWalking, btnTestActivity, btnClearData;
     private TextView aX, aY, aZ;
@@ -133,8 +131,8 @@ public class ActivityMonActivity extends AppCompatActivity implements ObserverSe
         btnClearData = (Button) findViewById(R.id.btnClearData);
         btnClearData.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v){
-                dbConnector = new AcceleroDBHandler(ActivityMonActivity.this);
-                Log.d("SPS", "#data:" + dbConnector.getAcceleroDataCount());
+        //        dbConnector = new AcceleroDBHandler(ActivityMonActivity.this);
+//                Log.d("SPS", "#data:" + dbConnector.getAcceleroDataCount());
                 CharSequence msg;
                 ClearAcceleroData clearAcceleroData = new ClearAcceleroData();
                 clearAcceleroData.execute();
@@ -158,13 +156,13 @@ public class ActivityMonActivity extends AppCompatActivity implements ObserverSe
     public void update(int SensorType){
         if (Sensor.TYPE_ACCELEROMETER == SensorType) {
             float[] aData =  Accelerometer.getGravity();
-            AcceleroData acceleroData = new AcceleroData();
-            acceleroData.setAccX(aData[0]);
-            acceleroData.setAccY(aData[1]);
-            acceleroData.setAccZ(aData[2]);
-            AddAcceleroData addAcceleroData = new AddAcceleroData(acceleroData);
-            addAcceleroData.execute();
-            writeAccel.appendData(aData[0], aData[1], aData[2], state);
+//            AcceleroData acceleroData = new AcceleroData();
+//            acceleroData.setAccX(aData[0]);
+//            acceleroData.setAccY(aData[1]);
+//            acceleroData.setAccZ(aData[2]);
+//            AddAcceleroData addAcceleroData = new AddAcceleroData(acceleroData);
+//            addAcceleroData.execute();
+//            writeAccel.appendData(aData[0], aData[1], aData[2], state);
             displayAccel(aData[0], aData[1], aData[2]);
         }
 
@@ -172,32 +170,32 @@ public class ActivityMonActivity extends AppCompatActivity implements ObserverSe
     }
 
     private class ClearAcceleroData extends AsyncTask<Object, Object, Object> {
-        AcceleroDBHandler dbConnector = new AcceleroDBHandler(ActivityMonActivity.this);
+        //AcceleroDBHandler dbConnector = new AcceleroDBHandler(ActivityMonActivity.this);
 
         public ClearAcceleroData() { return; }
 
         @Override
         protected Object doInBackground(Object... params) {
             // Open the database
-            dbConnector.clearAcceleroData();
+            //dbConnector.clearAcceleroData();
             return null;
         }
     }
 
-    private class AddAcceleroData extends AsyncTask<Object, Object, Object> {
-        AcceleroDBHandler dbConnector = new AcceleroDBHandler(ActivityMonActivity.this);
-        AcceleroData acceleroData_this;
-
-        public AddAcceleroData(AcceleroData acceleroData) {
-            acceleroData_this = acceleroData;
-        }
-
-        @Override
-        protected Object doInBackground(Object... params) {
-            // Open the database
-            dbConnector.addAcceleroData(acceleroData_this);
-            return null;
-        }
-    }
+//    private class AddAcceleroData extends AsyncTask<Object, Object, Object> {
+        //AcceleroDBHandler dbConnector = new AcceleroDBHandler(ActivityMonActivity.this);
+        //AcceleroData acceleroData_this;
+//
+//        public AddAcceleroData(AcceleroData acceleroData) {
+//            acceleroData_this = acceleroData;
+//        }
+//
+//        @Override
+//        protected Object doInBackground(Object... params) {
+//            // Open the database
+//            dbConnector.addAcceleroData(acceleroData_this);
+//            return null;
+//        }
+//    }
 
 }

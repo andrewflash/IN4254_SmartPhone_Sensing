@@ -1,12 +1,16 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -16,9 +20,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Timer;
@@ -29,7 +39,8 @@ import java.util.concurrent.Executors;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityMonitoring;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityType;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
-import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.MotionModel.DistanceModelZee;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Database.WifiDBHandler;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Database.WifiData;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.LocalizationMonitor;
 //import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.RunUpdate;
@@ -38,7 +49,6 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.RunUpd
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.CompassGUI;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.LocalizationMap;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.Accelerometer;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.LinearAccelero;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.ObserverSensor;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.RotationSensor;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.WiFi;
@@ -64,6 +74,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private Accelerometer accelerometer;
     private WifiManager wifiManager;
     private WiFi wifi;
+    private boolean isRegisteredWifi = false;
 
     // Accelerometer and Orientation data
     private ArrayList<Float> accelX;
@@ -88,6 +99,12 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private int stepSamples;
     private int stepCount;
 
+    // Timer Scheduler
+    private Timer schedulerTimerWifi;
+    private Timer schedulerTimerLocalization;
+    private Timer schedulerTimerUpdateInfo;
+    private boolean isSetSchedulerWifi = false;
+
     // Thread Queue
     private ExecutorService executor;
 
@@ -98,11 +115,18 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     // Activity
     private ActivityType activityType;
 
+    // Wifi Database
+    private WifiDBHandler wifiDb;
+
     // Buttons
-    private Button btnInitialBeliefPA,btnInitialBeliefBayes,btnSenseBayes;
+    private Button btnInitialBeliefPA,btnInitialBeliefBayes,btnSenseBayes,btnClearData;
 
     // Button Flags
     private boolean initInitialBeliefPA = false;
+    private boolean initInitialBeliefBayes = false;
+    private boolean isSensing = false;
+    private boolean isLoading = false;
+    private boolean isBtnAfterConverged = false;
 
     // Text
     private TextView txtAngle;
@@ -113,7 +137,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private TextView txtLocation;
 
     // Update View
-    public Handler mHandler;
+    private ProgressDialog loading;
     DecimalFormat d = new DecimalFormat("#.##");
     DecimalFormat di = new DecimalFormat("#");
 
@@ -133,12 +157,23 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         // Initialize total step
         totalStep = 0;
 
+        // Wifi Data
+        wifiDb = new WifiDBHandler(this.getApplicationContext());
+
+        // Timer scheduler
+        schedulerTimerLocalization = new Timer();
+        schedulerTimerUpdateInfo = new Timer();
+        schedulerTimerWifi = new Timer();
+
         // Monitoring (monitor activity and localization
         activityMonitoring = new ActivityMonitoring(getApplicationContext());
         localizationMonitor = new LocalizationMonitor(getApplicationContext(), floorLayout, N_PARTICLES);
 
         // Get activity type
         activityType = ActivityType.getInstance();
+
+        // Loading
+        loading = new ProgressDialog(this);
 
         // Init view
         initView();
@@ -151,36 +186,42 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
 
         // Update View in GUI
         setUpdateInfoSchedule();
-        //mHandler.post(updateInfoViewTask);
 
+        // Update localization monitoring
         setUpdateLocalizationMonitoring();
+
         // Init Wifi
-        //initWifi();
+        initWifi();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         // restore the sensor listeners when user resumes the application.
-        //orientation.initListeners();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         // unregister sensor listeners to prevent the activity from draining the device's battery.
-        //orientation.unregisterListeners();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         try {
-            //orientation.unregisterListeners();
             accelerometer.unregister();
             orientation.unregister();
-            unregisterReceiver(wifi);
-            wifi.clear();
+            if(isRegisteredWifi)
+                unregisterReceiver(wifi);
+
+            schedulerTimerUpdateInfo.cancel();
+            schedulerTimerWifi.cancel();
+            schedulerTimerLocalization.cancel();
+
+            schedulerTimerUpdateInfo.purge();
+            schedulerTimerWifi.purge();
+            schedulerTimerLocalization.purge();
         }
         catch (Exception e){
         }
@@ -214,6 +255,10 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             }
 
             if (this.accelX.size() >= activityMonitoring.getWindowSize() && this.numSample >= ACC_SAMPLE) {
+                if(isLoading){
+                    loading.dismiss();
+                    isLoading = false;
+                }
                 for (int j=0; j<ACC_SAMPLE; j++) {
                     this.accelX.remove(0);
                     this.accelY.remove(0);
@@ -240,27 +285,43 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     // Observer
     @Override
     public void update(Observable observable, Object o) {
-        Log.d(this.getClass().getSimpleName(),"Receive WiFi update");
-//        // If we receive update of wifi data
-//        } else {//if(observable == wifi.getObservable()){
-//            Log.d(this.getClass().getSimpleName(),"receiveWifi");
-//            localizationMonitor.initialBelief(wifi.getRSSI());
-//            localizationView.setParticles(localizationMonitor.getParticles());
-//            localizationView.reset();
-//            localizationView.post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    localizationView.invalidate();
-//                }
-//            });
-//            compassGUI.post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    compassGUI.invalidate();
-//                }
-//            });
-//            btnInitialBeliefPA.setText("INITIAL BELIEF PA");
-//        }
+        if(observable == wifi.getObservable()){
+            // If it is not sensing at the moment
+            if(!isSensing) {
+                if (isParticleConverged) {
+                    List<ScanResult> wifiResults = (List<ScanResult>) o;
+                    JSONArray jsonWifiList = new JSONArray();
+
+                    try {
+                        for (ScanResult wifiRes : wifiResults) {
+                            JSONObject jsonWifiData = new JSONObject();
+                            jsonWifiData.put("bssid", (String) wifiRes.BSSID);
+                            jsonWifiData.put("level", (int) wifiRes.level);
+                            jsonWifiList.put(jsonWifiData);
+                        }
+                    } catch (JSONException e) {
+                        Log.e(this.getClass().getSimpleName(), "JSON Wifi error: " + e.getMessage());
+                    }
+
+                    Log.d(this.getClass().getSimpleName(), "JSON data: " + jsonWifiList.toString());
+
+                    WifiData wifiData = new WifiData(
+                            localizationMonitor.getParticles().get(0).getCurrentLocation().getX(),
+                            localizationMonitor.getParticles().get(0).getCurrentLocation().getY(),
+                            localizationMonitor.getCellLocation(), jsonWifiList.toString());
+
+                    AddWifiData addWifiData = new AddWifiData(wifiData);
+                    addWifiData.execute();
+
+                    Log.d(this.getClass().getSimpleName(), "Receive WiFi update");
+                }
+            } else {
+                loading.dismiss();
+                isSensing = false;
+                isParticleConverged = true;
+                Log.d(this.getClass().getSimpleName(), "Sensing Bayes");
+            }
+        }
     }
 
     public void initView() {
@@ -329,19 +390,43 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         if (!wifiManager.isWifiEnabled()) {
             wifiManager.setWifiEnabled(true);
         }
+
         // Create WiFi observer
         wifi = new WiFi(wifiManager);
-        registerReceiver(wifi, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        wifi.getObservable().addObserver(this);
+        if(!isRegisteredWifi) {
+            registerReceiver(wifi, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+            wifi.getObservable().addObserver(this);
+            isRegisteredWifi = true;
+        }
     }
 
     private void initButtons() {
+
         btnInitialBeliefPA = (Button) findViewById(R.id.btnInitialBeliefPA);
+        btnInitialBeliefBayes = (Button) findViewById(R.id.btnInitialBeliefBayes);
+        btnSenseBayes = (Button) findViewById(R.id.btnSenseBayes);
+        btnClearData = (Button) findViewById(R.id.btnClearData);
+
+        // Check buttons cond
+        if (wifiDb.isWifiTableEmpty()) {
+            btnInitialBeliefPA.setEnabled(true);
+            btnSenseBayes.setEnabled(false);
+            btnInitialBeliefBayes.setEnabled(false);
+        }
+
+        if(!isParticleConverged){
+            btnInitialBeliefBayes.setEnabled(false);
+        }
+
         btnInitialBeliefPA.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(!initInitialBeliefPA) {
                     // Initial Belief start
+                    isLoading = true;
+                    loading.setTitle("Loading");
+                    loading.setMessage("Collecting samples...");
+                    loading.show();
                     accelerometer.register(SAMPLING_RATE_ACC);
                     orientation.register(SAMPLING_RATE_ORIENTATION);
 
@@ -359,6 +444,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     // Initial Belief stop
                     accelerometer.unregister();
                     orientation.unregister();
+                    accelX.clear();
+                    accelY.clear();
+                    accelZ.clear();
                     initInitialBeliefPA = false;
                     btnInitialBeliefPA.setText("INITIAL BELIEF PA");
                 }
@@ -366,24 +454,55 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         });
 
         // Initial Belief Bayes
-        btnInitialBeliefBayes = (Button) findViewById(R.id.btnInitialBeliefBayes);
         btnInitialBeliefBayes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                wifiManager.startScan();
-                localizationMonitor.initialBelief(wifi.getRSSI());
-                wifi.getObservable().mySetChanged();
+                if(!initInitialBeliefBayes) {
+                    if (!isSetSchedulerWifi) {
+                        setUpdateWifiSignal();
+                        isSetSchedulerWifi = true;
+                    }
+                    btnInitialBeliefBayes.setText("STOP INITIAL BAYES");
+                    btnSenseBayes.setEnabled(false);
+                    initInitialBeliefBayes = true;
+                } else {
+                    schedulerTimerWifi.cancel();
+                    schedulerTimerWifi.purge();
+                    schedulerTimerWifi = null;
+                    btnInitialBeliefBayes.setText("INITIAL BELIEF BAYES");
+                    initInitialBeliefBayes = false;
+                    btnSenseBayes.setEnabled(true);
+                    isSetSchedulerWifi = false;
+                }
             }
         });
 
         // Sense Bayes
-        btnSenseBayes = (Button) findViewById(R.id.btnSenseBayes);
         btnSenseBayes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                accelerometer.register(SAMPLING_RATE_ACC);
-                orientation.register(SAMPLING_RATE_ORIENTATION);
-                registerReceiver(wifi, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+                isSensing = true;
+                wifiManager.startScan();
+                wifi.getObservable().mySetChanged();
+                loading.setTitle("Loading");
+                loading.setMessage("Scanning Wifi...");
+                loading.show();
+            }
+        });
+
+        // Clear Data
+        btnClearData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                loading.setTitle("Loading");
+                loading.setMessage("Cleaning up wifi data");
+                loading.show();
+                wifiDb.clearWifiData();
+                loading.dismiss();
+                Toast.makeText(getApplicationContext(), (CharSequence)"Successfully clean up wifi data", Toast.LENGTH_SHORT).show();
+                btnSenseBayes.setEnabled(false);
+                if(!isParticleConverged)
+                    btnInitialBeliefBayes.setEnabled(false);
             }
         });
     }
@@ -396,19 +515,17 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         txtActivityPF.setText(activityMonitoring.getActivity().toString());
         txtLocation.setText(localizationMonitor.getCellLocation());
 
-        if(isParticleConverged) {
+        if(isParticleConverged && !isBtnAfterConverged) {
             initInitialBeliefPA = false;
             btnInitialBeliefPA.setText("INITIAL BELIEF PA");
             btnInitialBeliefPA.setEnabled(false);
-            btnInitialBeliefPA.setClickable(false);
+            btnInitialBeliefBayes.setEnabled(true);
+            btnSenseBayes.setEnabled(true);
+            isBtnAfterConverged = true;
         }
-
-        //this.compassGUI.invalidate();
     }
 
     public void setUpdateInfoSchedule(){
-        Timer schedulerTimer = new Timer();
-
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
@@ -420,27 +537,16 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 });
             }
         };
-        schedulerTimer.scheduleAtFixedRate(task,0,250);
+        schedulerTimerUpdateInfo.scheduleAtFixedRate(task,0,250);
     }
 
-
     public void setUpdateLocalizationMonitoring() {
-        Timer schedulerTimer = new Timer();
-
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        //ArrayList<Integer> stepCountList = activityMonitoring.getStepCountList();
-                        //int totalStepCurrent = 0;
-
-//                        for(int step : stepCountList){
-//                            totalStepCurrent += step;
-//                            totalStep += step;
-//                        }
-
                         activityMonitoring.clearStepCountList();
 
                         // Create runnable localization
@@ -455,16 +561,48 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
 
                         // Update particle converged flag
                         isParticleConverged = localizationMonitor.isParticleHasConverged();
-
-                        // Scan Wifi while user is walking
-                        if (activityType.getLast() == Type.WALKING) {
-                            //wifiManager.startScan();
-                        }
                     }
                 });
             }
         };
-        schedulerTimer.scheduleAtFixedRate(task,0,250);
+        schedulerTimerLocalization.scheduleAtFixedRate(task,0,250);
     }
 
+    public void setUpdateWifiSignal() {
+
+        if(schedulerTimerWifi == null){
+            schedulerTimerWifi = new Timer();
+        }
+
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        wifiManager.startScan();
+                        wifi.getObservable().mySetChanged();
+                    }
+                });
+            }
+        };
+        schedulerTimerWifi.scheduleAtFixedRate(task,0,5000);
+    }
+
+
+    private class AddWifiData extends AsyncTask<Object, Object, Object> {
+        WifiDBHandler dbConnector = new WifiDBHandler(getApplicationContext());
+        WifiData wifiData_this;
+
+        public AddWifiData(WifiData wifiData) {
+            wifiData_this = wifiData;
+        }
+
+        @Override
+        protected Object doInBackground(Object... params) {
+            // Open the database
+            dbConnector.addWifiData(wifiData_this);
+            return null;
+        }
+    }
 }

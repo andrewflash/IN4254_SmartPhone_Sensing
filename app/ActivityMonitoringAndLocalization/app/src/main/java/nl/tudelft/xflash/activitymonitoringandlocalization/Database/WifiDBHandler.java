@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -66,7 +67,7 @@ public class WifiDBHandler extends SQLiteOpenHelper {
         db.close(); // Closing database connection
     }
 
-// Getting one wifiData
+    // Getting one wifiData
     public WifiData getWifiData(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_WIFI, new String[]{KEY_ID,
@@ -176,5 +177,12 @@ public class WifiDBHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_WIFI, null, null);
         db.close();
+    }
+
+    // Check if wifi table is empty
+    public boolean isWifiTableEmpty() {
+        if(getWifiDataCount() > 0)
+            return false;
+        return true;
     }
 }
