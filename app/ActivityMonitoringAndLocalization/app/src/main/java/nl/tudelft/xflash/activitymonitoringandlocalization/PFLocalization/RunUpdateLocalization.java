@@ -33,9 +33,11 @@ public class RunUpdateLocalization implements Runnable {
     private Context context;
 
     private int stepCount;
+    private float strideLength;
 
     public RunUpdateLocalization(float angle, LocalizationMonitor locMon,
-                                 LocalizationMap locMap, CompassGUI compGUI, int stepCount, Context context)
+                                 LocalizationMap locMap, CompassGUI compGUI, int stepCount,
+                                 float strideLength, Context context)
     {
         this.angle = angle;
         this.localizationMonitor = locMon;
@@ -45,6 +47,7 @@ public class RunUpdateLocalization implements Runnable {
         this.visitedPath = VisitedPath.getInstance();
         this.particleHasConverged = false;
         this.context = context;
+        this.strideLength = strideLength;
     }
 
     public Context getAppContext() {
@@ -56,7 +59,7 @@ public class RunUpdateLocalization implements Runnable {
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
 
         // Update localization monitor
-        if (this.localizationMonitor.update(angle,stepCount)) {
+        if (this.localizationMonitor.update(angle,stepCount,strideLength)) {
             // Check for convergence of particles
             if(!particleHasConverged) {
                 convergedLoc = localizationMonitor.particleConverged();
@@ -69,7 +72,8 @@ public class RunUpdateLocalization implements Runnable {
                             localizationMap.setConvLocation(convergeParticle);
                         }
                     });
-                    localizationMonitor.setConvergedParticle(convergeParticle.getCurrentLocation());
+                    localizationMonitor.setConvergedParticle(convergeParticle.getCurrentLocation(),
+                            convergeParticle.getCurrentStride());
                     particleHasConverged = true;
                     localizationMonitor.setParticleHasConverged(true);
                 }

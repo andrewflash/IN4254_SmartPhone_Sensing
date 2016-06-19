@@ -120,6 +120,27 @@ public class FloorLayout {
         return northAngle;
     }
 
+    // Check if walking with specific stride length is possible
+    public boolean isStrideWithin(Particle particle) {
+        Location loc = particle.getCurrentLocation();
+        Location prevLoc = particle.getPreviousLocation();
+
+        float dx = loc.getX() - prevLoc.getX();
+        float dy = loc.getY() - prevLoc.getY();
+        float hypotenuse = (float) Math.sqrt(dx*dx + dy*dy);
+
+        float stride = particle.getCurrentStride();
+        float nextX = loc.getX() + stride*(dx/hypotenuse);
+        float nextY = loc.getY() + stride*(dy/hypotenuse);
+
+        if(nextX < this.width && nextX>0 && nextY < this.height && nextY>0 ) {
+            return floorRegion.contains((int) nextX, (int) nextY);
+        }
+        else{
+            return false;
+        }
+    }
+
     // Check if particle inside the boundary of floor layout
     public boolean isParticleInside(Particle particle){
         Location loc = particle.getCurrentLocation();
@@ -130,7 +151,6 @@ public class FloorLayout {
         else{
             return false;
         }
-
     }
 
     // Get cell name based on location
