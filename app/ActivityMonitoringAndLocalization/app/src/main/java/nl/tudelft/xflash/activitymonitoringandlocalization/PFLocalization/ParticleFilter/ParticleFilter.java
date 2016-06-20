@@ -116,10 +116,13 @@ public class ParticleFilter {
             return;
         }
 
-        // New movement (not yet converged), then update the path
-        visitedPath.setDx(ArrayOperations.mean(this.dx));
-        visitedPath.setDy(ArrayOperations.mean(this.dy));
-
+        if(this.dx.size() > 0) {
+            visitedPath.setDx(ArrayOperations.mean(this.dx));
+            visitedPath.setDy(ArrayOperations.mean(this.dy));
+        } else {
+            visitedPath.setDx(0);
+            visitedPath.setDy(0);
+        }
         // Clear dx and dy list
         dx.clear();
         dy.clear();
@@ -172,8 +175,13 @@ public class ParticleFilter {
         }
 
         // New movement (not yet converged), then update the path
-        visitedPath.setDx(ArrayOperations.mean(this.dx));
-        visitedPath.setDy(ArrayOperations.mean(this.dy));
+        if(this.dx.size() > 0) {
+            visitedPath.setDx(ArrayOperations.mean(this.dx));
+            visitedPath.setDy(ArrayOperations.mean(this.dy));
+        } else {
+            visitedPath.setDx(0);
+            visitedPath.setDy(0);
+        }
 
         // Clear dx and dy list
         dx.clear();
