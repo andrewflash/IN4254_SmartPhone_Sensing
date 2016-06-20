@@ -82,6 +82,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private ArrayList<Float> accelY;
     private ArrayList<Float> accelZ;
     private float angle;
+    private float curAngle;
 
     // Windows size of accelerometer and orientation sensor
     public static final int SAMPLING_RATE_ACC = 20000; // 50 Hz (1/20000 us)
@@ -255,6 +256,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 if (this.stepSamples >= activityMonitoring.getTOpt() / 2) {
                     this.stepCount = this.stepCount + 1;
                     this.stepSamples = 0;
+                    this.curAngle = angle;
                 }
             }
 
@@ -474,14 +476,14 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                         setUpdateWifiSignal();
                         isSetSchedulerWifi = true;
                     }
-                    btnInitialBeliefBayes.setText("SCAN WIFI");
+                    btnInitialBeliefBayes.setText("STOP SCANNING");
                     btnSenseBayes.setEnabled(false);
                     initInitialBeliefBayes = true;
                 } else {
                     schedulerTimerWifi.cancel();
                     schedulerTimerWifi.purge();
                     schedulerTimerWifi = null;
-                    btnInitialBeliefBayes.setText("STOP SCANNING");
+                    btnInitialBeliefBayes.setText("SCAN WIFI");
                     initInitialBeliefBayes = false;
                     btnSenseBayes.setEnabled(true);
                     isSetSchedulerWifi = false;
@@ -560,10 +562,17 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     @Override
                     public void run() {
                         // Create runnable localization
-                        RunUpdateLocalization runUpdateLocalization = new RunUpdateLocalization(
-                                angle, localizationMonitor, localizationView, compassGUI, stepCount,
-                                getApplicationContext());
+                        RunUpdateLocalization runUpdateLocalization;
 
+                        if(activityMonitoring.getActivity() == Type.WALKING) {
+                            runUpdateLocalization = new RunUpdateLocalization(
+                                    curAngle, localizationMonitor, localizationView, compassGUI, stepCount,
+                                    getApplicationContext());
+                        } else {
+                            runUpdateLocalization = new RunUpdateLocalization(
+                                    angle, localizationMonitor, localizationView, compassGUI, stepCount,
+                                    getApplicationContext());
+                        }
                         totalStep += stepCount;
                         stepCount = 0;
 
