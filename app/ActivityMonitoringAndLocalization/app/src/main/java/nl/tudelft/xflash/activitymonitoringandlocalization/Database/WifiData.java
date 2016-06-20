@@ -81,4 +81,14 @@ public class WifiData {
     public long getTime() {
         return this._time;
     }
+
+    public static float normalizeRssi(int rssi){
+        // Anything worse than or equal to this will show 0 bars
+        final int MIN_RSSI = -100;
+        // Anything better than or equal to this will show the max bars.
+        final int MAX_RSSI = -55;
+
+        int range = MAX_RSSI - MIN_RSSI;
+        return 1f - ((float)(MAX_RSSI - rssi) / range);
+    }
 }

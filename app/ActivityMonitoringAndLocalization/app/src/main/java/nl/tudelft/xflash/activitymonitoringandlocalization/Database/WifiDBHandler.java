@@ -6,8 +6,13 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
+import android.net.wifi.ScanResult;
 import android.os.AsyncTask;
 import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +68,7 @@ public class WifiDBHandler extends SQLiteOpenHelper {
         values.put(KEY_SSID, wifiData.get_ssid());
         values.put(KEY_TIMESTAMP, System.currentTimeMillis());
         // Inserting Row
-        db.insert(TABLE_WIFI, null, values);
+        db.insertWithOnConflict(TABLE_WIFI, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         db.close(); // Closing database connection
     }
 
@@ -185,4 +190,23 @@ public class WifiDBHandler extends SQLiteOpenHelper {
             return false;
         return true;
     }
+
+    // Pack json
+    public String packWifiJSON(List<ScanResult> wifiResults){
+        JSONArray jsonWifiList = new JSONArray();
+
+        try {
+            for (ScanResult wifiRes : wifiResults) {
+                JSONObject jsonWifiData = new JSONObject();
+                jsonWifiData.put("bssid", (String) wifiRes.BSSID);
+                jsonWifiData.put("level", (int) wifiRes.level);
+                jsonWifiList.put(jsonWifiData);
+            }
+        } catch (JSONException e) {
+            Log.e(this.getClass().getSimpleName(), "JSON Wifi error: " + e.getMessage());
+        }
+
+        return jsonWifiList.toString();
+    }
+
 }

@@ -1,10 +1,17 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.ParticleFilter;
 
+import android.net.wifi.ScanResult;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
+import nl.tudelft.xflash.activitymonitoringandlocalization.Database.WifiData;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Misc.ArrayOperations;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.Location;
@@ -171,49 +178,59 @@ public class ParticleFilter {
     }
 
     // Initial Belief PF
-    public void initialBeliefBayesKNN(ArrayList<ArrayList<Integer>> rssiData){
-        // Get instance of visited path
-        ArrayList<Float> visitedPathX = VisitedPath.getInstance().getPathX();
-        ArrayList<Float> visitedPathY = VisitedPath.getInstance().getPathY();
+    public boolean initialBeliefBayesKNN(List<ScanResult> curWifi, List<WifiData> wifiData) {
+        // If no rssiData yet, return
+        if (wifiData.isEmpty() || curWifi.isEmpty()){
+            return false;
+        }
 
-        // If visited path is empty and no rssiData yet, return
-        if (visitedPathX.isEmpty() || visitedPathY.isEmpty() || rssiData.isEmpty())
-            return;
+        // Current Wifi Data
+        ArrayList<String> curBssidList = new ArrayList<>();
+        ArrayList<Integer> curLevelList = new ArrayList<>();
+        for (ScanResult s : curWifi){
+            curBssidList.add(s.BSSID);
+            curLevelList.add(s.level);
+        }
 
         // RSSI Wifi distances
         ArrayList<Double> rssiDistances = new ArrayList<>();
-        ArrayList<Integer> lastRssi = rssiData.get(rssiData.size()-1);
-        rssiData.remove(lastRssi);
 
         // Calculate RSSI distances
-        for (ArrayList<Integer> rssiPoint : rssiData){
-            double dist = 0 ;
-            for (int i = 0; i < rssiPoint.size() ; i++) {
-                dist += rssiPoint.get(i) - lastRssi.get(i);
-                dist = Math.abs(dist);
+        try {
+            for (WifiData wifi : wifiData) {
+                float distance = 0;
+                String jsonWifi = wifi.get_ssid();
+                JSONArray jsonWifiArray = new JSONArray(jsonWifi);
+                for (int i=0; i<jsonWifiArray.length(); i++){
+                    JSONObject jsonWifiData = jsonWifiArray.getJSONObject(i);
+                    String bssid = jsonWifiData.getString("bssid");
+                    int level = jsonWifiData.getInt("level");
+                    for(int j=0; j<curBssidList.size();j++) {
+                        if(curBssidList.get(j).equals(bssid)){
+                            distance += (Math.abs(WifiData.normalizeRssi(level)
+                                    - WifiData.normalizeRssi(curLevelList.get(j))));
+                        } else {    // wifi not found in database
+                            distance += 1;
+                        }
+                    }
+                }
+                rssiDistances.add((double)distance);
             }
-            rssiDistances.add(dist);
+
+            Log.d(this.getClass().getSimpleName(), rssiDistances.toString());
+        } catch (JSONException e) {
+            Log.e(this.getClass().getSimpleName(), "JSON Wifi error: " + e.getMessage());
         }
 
         // Find best RSSI point
         int bestRssiIndex = ArrayOperations.indexFirstMinimumFrom(0, rssiDistances);
-        float x0 = visitedPathX.get(visitedPathX.size()-bestRssiIndex-1);
-        float y0 = visitedPathY.get(visitedPathY.size()-bestRssiIndex-1);
+        float x0 = (float)wifiData.get(bestRssiIndex).getX();
+        float y0 = (float)wifiData.get(bestRssiIndex).getY();
 
-        particles.clear();
+        Log.d(this.getClass().getSimpleName(), "x0: " + x0 + " y0: " + y0);
+        setConvergedParticle(new Location(x0,y0));
 
-        int i = 0;
-        float sigma = 3f;   // stdev for generating particle
-
-        while(i < N_PARTICLES) {
-            Particle p = new Particle(x0 + (float) rand.nextGaussian() * sigma,
-                    y0 + (float) rand.nextGaussian() * sigma);
-            // Check if the particle is inside floor plan.
-            if (floorLayout.isParticleInside(p)) {
-                particles.add(p);
-                i++;
-            }
-        }
+        return true;
     }
 
     // Return converged particle location, approximate using average and stdev

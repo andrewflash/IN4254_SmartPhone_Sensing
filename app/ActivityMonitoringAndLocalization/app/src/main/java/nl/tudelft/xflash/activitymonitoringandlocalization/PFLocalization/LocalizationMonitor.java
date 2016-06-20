@@ -1,11 +1,15 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization;
 
 import android.content.Context;
+import android.net.wifi.ScanResult;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
 import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityType;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Database.WifiData;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.Location;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.ParticleFilter.Particle;
@@ -37,9 +41,10 @@ public class LocalizationMonitor {
     }
 
     // Execute initial belief
-    public void initialBeliefBayesKNN(ArrayList<ArrayList<Integer>> rssiData){
-        pf.initialBeliefBayesKNN(rssiData);
+    public boolean initialBeliefBayesKNN(List<ScanResult> curWifi, List<WifiData> wifiData){
+        boolean b = pf.initialBeliefBayesKNN(curWifi, wifiData);
         activityList.empty();
+        return b;
     }
 
     // Reset localization
