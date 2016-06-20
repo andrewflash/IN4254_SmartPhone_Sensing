@@ -11,7 +11,7 @@ import android.util.Log;
 public class LinearAccelero extends AbstractSensor {
 
     private static float[] linear_acceleration = {0f,0f,0f};
-    private static final float alpha = 0.1f;      // Low-pass filter
+    private static final float alpha = 0.8f;      // Low-pass filter
 
     public LinearAccelero(SensorManager sm){
         super(sm);

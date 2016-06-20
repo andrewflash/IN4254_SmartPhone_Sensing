@@ -98,9 +98,9 @@ public class LocalizationMap extends View {
         particlePaint.setStrokeCap(Paint.Cap.ROUND);
 
         wallPaint = new Paint();
-        wallPaint.setStyle(Paint.Style.STROKE);
-        wallPaint.setColor(Color.BLACK);
-        wallPaint.setStrokeWidth(3);
+        wallPaint.setStyle(Paint.Style.FILL);
+        wallPaint.setColor(Color.WHITE);
+        //wallPaint.setStrokeWidth(3);
 
         cellPaint = new Paint();
         cellPaint.setStyle(Paint.Style.STROKE);
@@ -113,7 +113,7 @@ public class LocalizationMap extends View {
         cellTextPaint.setColor(Color.BLACK);
         cellTextPaint.setTextSize(20f);
         cellTextPaint.setTypeface(Typeface.MONOSPACE);
-        cellTextPaint.setTextScaleX(-1f);
+//        cellTextPaint.setTextScaleX(-1f);
 
         convPaint = new Paint();
         convPaint.setStyle(Paint.Style.STROKE);
@@ -159,6 +159,11 @@ public class LocalizationMap extends View {
 
         super.onDraw(canvas);
 
+        canvas.drawColor(Color.GRAY);
+
+        // Draw walls
+        canvas.drawPath(wall, wallPaint);
+
         // Draw cell area
         for (int i=0; i<cellNames.size(); i++){
             canvas.drawRect(cellRectList.get(i).left*scale + offsetX,cellRectList.get(i).top*scale + offsetY,
@@ -168,9 +173,6 @@ public class LocalizationMap extends View {
                     cellRectList.get(i).top*scale + offsetY + cellRectList.get(i).height()*scale/2,
                     cellTextPaint);
         }
-
-        // Draw walls
-        canvas.drawPath(wall, wallPaint);
 
         // Draw converged particle
         if (convParticle != null) {

@@ -1,5 +1,7 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.ParticleFilter;
 
+import java.util.Random;
+
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.Location;
 
 /**
@@ -7,37 +9,37 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorL
  */
 public class Particle {
     private Location prevLoc, currLoc;
-    private float prevStride, currStride;
+    private float strideLength;
+    private float angleOffset;
+    private final float MAX_STRIDE = 1.0f;
+    private final float MIN_STRIDE = 0.5f;
+    private final float SIGMA_ANGLE_RAD = 0.01f;
+    private Random rand = new Random();
 
-    public Particle(float x, float y, float stride){
+    public Particle(float x, float y){
         this.currLoc = new Location(x,y);
         this.prevLoc = new Location(x,y);
-        this.currStride = stride;
-        this.prevStride = stride;
+        this.strideLength = (float)(Math.random() * (MAX_STRIDE - MIN_STRIDE) + MIN_STRIDE);
+        this.angleOffset = (float)(rand.nextGaussian() * SIGMA_ANGLE_RAD);
     }
 
-    public Particle(Location newLoc, float stride){
+    public Particle(Location newLoc){
         this.currLoc = new Location(newLoc);
         this.prevLoc= new Location(newLoc);
-        this.currStride = stride;
-        this.prevStride = stride;
+        this.strideLength = (float)(Math.random() * (MAX_STRIDE - MIN_STRIDE) + MIN_STRIDE);
+        this.angleOffset = (float)(rand.nextGaussian() * SIGMA_ANGLE_RAD);
     }
 
-    public Particle(Location currLoc, Location prevLoc, float currStride, float prevStride){
+    public Particle(Location currLoc, Location prevLoc){
         this.currLoc = new Location(currLoc);
         this.prevLoc = new Location(prevLoc);
-        this.currStride = currStride;
-        this.prevStride = prevStride;
+        this.strideLength = (float)(Math.random() * (MAX_STRIDE - MIN_STRIDE) + MIN_STRIDE);
+        this.angleOffset = (float)(rand.nextGaussian() * SIGMA_ANGLE_RAD);
     }
 
     public void updateLocation(float dx, float dy){
         prevLoc.setLocation(currLoc);
         currLoc.translate(dx, dy);
-    }
-
-    public void updateStride(float ds){
-        prevStride = currStride;
-        currStride = currStride + ds;
     }
 
     // Euclidean distance
@@ -53,18 +55,17 @@ public class Particle {
         this.currLoc = newLocation;
     }
 
-    public void setCurrentStride(float currStride){
-        this.currStride = currStride;
-    }
-
     public Location getCurrentLocation(){
         return this.currLoc;
     }
 
-    public float getCurrentStride(){
-        return this.currStride;
+    public float getStrideLength(){
+        return this.strideLength;
     }
 
+    public float getAngleOffset(){
+        return this.angleOffset;
+    }
 
     public void setPreviousLocation(Location newLocation){
         this.prevLoc = newLocation;
@@ -74,15 +75,7 @@ public class Particle {
         return this.prevLoc;
     }
 
-    public void setPreviousStride(float prevStride){
-        this.prevStride = prevStride;
-    }
-
-    public float getPreviousStride(){
-        return this.prevStride;
-    }
-
     public Particle duplicate(){
-        return new Particle(this.currLoc, this.prevLoc, this.currStride, this.prevStride);
+        return new Particle(this.currLoc, this.prevLoc);
     }
 }

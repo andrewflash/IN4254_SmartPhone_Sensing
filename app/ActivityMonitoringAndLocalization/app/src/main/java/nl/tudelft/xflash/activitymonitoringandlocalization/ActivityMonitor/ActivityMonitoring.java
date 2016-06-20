@@ -15,9 +15,6 @@ public class ActivityMonitoring {
     // This instance keeps track of the activities performed
     ActivityType activityList;
     private Nasc nasc;
-    private int stepCount;
-    private ArrayList<Integer> stepCountList;
-    private float strideLength;
     private int tmin = 40;
     private int tmax = 100;
     private int tOpt = 0;
@@ -27,23 +24,6 @@ public class ActivityMonitoring {
     public ActivityMonitoring(Context ctx) {
         activityList = ActivityType.getInstance();
         nasc = new Nasc(tmin, tmax);
-        stepCountList = new ArrayList<>();
-    }
-
-    private void updateStepCount() {
-        int nStep = 0;
-        if(getActivity() == Type.WALKING) { // always walking
-            nStep = getWindowSize() / (nasc.gettOpt()/2); // num samples = window size
-            stepCountList.add(nStep);
-        }
-        else {
-            nStep = 0;
-        }
-        this.stepCount = nStep;
-    }
-
-    private void updateStrideLength() {
-        this.strideLength = 0.5f; // in meter;
     }
 
     public int getWindowSize() {
@@ -60,12 +40,13 @@ public class ActivityMonitoring {
         // calculate maxNAC
         maxNAC = nasc.getMaxNac();
 
-        if(stdevAcc < 0.1) {
+        if(stdevAcc < 0.2) {
             state = Type.IDLE;
-        }
-        if(maxNAC > 0.7) {
+        } else if(maxNAC > 0.7) {
             state = Type.WALKING;
         }
+
+//        Log.d(this.getClass().getSimpleName(),"stdevAcc: " + stdevAcc + " :: maxNAC: " + maxNAC);
         this.oldState = state;
         return state;
     }
@@ -83,9 +64,6 @@ public class ActivityMonitoring {
         if(this.finished) {
             this.finished = false;
             nasc.setAccelerations(x, y, z);
-
-            nasc.normalizeAcceleroArrayList(x,y,z);
-
             nasc.calculateMaxNACandTopt(this.tmin, this.tmax);
 
             this.tmin = nasc.gettMin();
@@ -95,30 +73,12 @@ public class ActivityMonitoring {
             Type label = this.updateState();
             activityList.addType(label);
 
-            //updateStepCount();
-            updateStrideLength();
             this.finished = true;
         }
     }
 
     public boolean isFinished() {
         return finished;
-    }
-
-    public int getStepCount(){
-        return stepCount;
-    }
-
-    public float getStrideLength(){
-        return strideLength;
-    }
-
-    public ArrayList<Integer> getStepCountList(){
-        return stepCountList;
-    }
-
-    public void clearStepCountList(){
-        this.stepCountList.clear();
     }
 
     public int getTOpt(){

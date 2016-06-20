@@ -18,8 +18,6 @@ public class ParticleFilter {
     private ArrayList<Particle> particles;
     private FloorLayout floorLayout;
     private final int N_PARTICLES;
-    private final float MAX_STRIDE = 1.0f;
-    private final float MIN_STRIDE = 0.5f;
     private final float RATIO = 9f/10;
 
     private Random rand;
@@ -45,8 +43,7 @@ public class ParticleFilter {
         int width = floorLayout.getWidth();
 
         while(i < n){
-            Particle p = new Particle((float)(Math.random() * width), (float)(Math.random()* height),
-                    (float)(Math.random() * (MAX_STRIDE - MIN_STRIDE) + MIN_STRIDE));
+            Particle p = new Particle((float)(Math.random() * width), (float)(Math.random()* height));
             if(floorLayout.isParticleInside(p)){
                 particles.add(p);
                 i++;
@@ -70,31 +67,26 @@ public class ParticleFilter {
     }
 
     // Motion model
-    public void movement(float alpha, int stepCount, float strideLength){
+    public void movement(float alpha, int stepCount){
         ArrayList<Particle> particleTemp = new ArrayList<Particle>(particles.size());
         ArrayList<Particle> dupParticles = new ArrayList<Particle>(particles.size());
 
         // Duplicate all particles to particleTemp
         for(Particle p : particles) {
-            particleTemp.add(new Particle(p.getCurrentLocation(), p.getPreviousLocation(),
-                                            p.getCurrentStride(), p.getPreviousStride()));
-            dupParticles.add(new Particle(p.getCurrentLocation(), p.getPreviousLocation(),
-                                            p.getCurrentStride(), p.getPreviousStride()));
+            particleTemp.add(new Particle(p.getCurrentLocation(), p.getPreviousLocation()));
+            dupParticles.add(new Particle(p.getCurrentLocation(), p.getPreviousLocation()));
         }
 
         ArrayList<Particle> collisionParticles = new ArrayList<>();
 
         // Check particle collision with walls
         for (Particle p : dupParticles){
-            mov = distanceModelZee.getDistance(alpha,stepCount,strideLength);
+            mov = distanceModelZee.getDistance(alpha,stepCount,p.getAngleOffset(),p.getStrideLength());
             p.updateLocation(mov[0], mov[1]);
             if(floorLayout.detectCollision(p)){
                 collisionParticles.add(p);
             }
             else if (!floorLayout.isParticleInside(p)){
-                collisionParticles.add(p);
-            }
-            else if (floorLayout.isStrideWithin(p)){
                 collisionParticles.add(p);
             }
             else{
@@ -106,7 +98,8 @@ public class ParticleFilter {
         // Get instance of visited path
         VisitedPath visitedPath = VisitedPath.getInstance();
 
-        // If 95% of particles have died than don't update the particleList
+        // If 90% of particles have died than don't update the particleList
+        // avoid trap and ensure convergence
         if(collisionParticles.size() > dupParticles.size() * 0.9f){
             // As it converge, we do not need to add movement dx and dy
             visitedPath.setDx(0f);
@@ -128,10 +121,9 @@ public class ParticleFilter {
         // Clear out all the particles
         particles.clear();
 
-        // Duplicate all new particles
+        // Recreate particle (excluding the collided particles)
         for(Particle p : dupParticles) {
-            particles.add(new Particle(p.getCurrentLocation(), p.getPreviousLocation(),
-                    p.getCurrentStride(), p.getPreviousStride()));
+            particles.add(new Particle(p.getCurrentLocation(), p.getPreviousLocation()));
         }
 
         int safeSize = particles.size();
@@ -140,29 +132,27 @@ public class ParticleFilter {
         for (int i = 0; i < collisionParticles.size()*RATIO ; i++) {
             int index = new Random().nextInt(safeSize);
             particles.add(new Particle(particles.get(index).getCurrentLocation().getX(),
-                    particles.get(index).getCurrentLocation().getY(),
-                    particles.get(index).getCurrentStride()));
+                    particles.get(index).getCurrentLocation().getY()));
         }
 
-        // 1-ratio (particleTemp)
+        // 1-ratio (particleTemp), randomized the rest particle locations
         for (int i = 0; i < collisionParticles.size()*(1-RATIO)-1 ; i++) {
             int index = new Random().nextInt(particleTemp.size());
             particles.add(new Particle(particleTemp.get(index).getPreviousLocation().getX(),
-                    particleTemp.get(index).getPreviousLocation().getY(),
-                    particleTemp.get(index).getPreviousStride()));
+                    particleTemp.get(index).getPreviousLocation().getY()));
         }
     }
 
     // Motion model for best particle
-    public void movementBest(float alpha, int stepCount, float strideLength){
+    public void movementBest(float alpha, int stepCount){
         // Get instance of visited path
         VisitedPath visitedPath = VisitedPath.getInstance();
 
         for(Particle p : particles) {
-            mov = distanceModelZee.getDistance(alpha,stepCount,strideLength);
+            mov = distanceModelZee.getDistance(alpha,stepCount,0,p.getStrideLength());
             p.updateLocation(mov[0], mov[1]);
             // Check particle collision with walls
-            if(floorLayout.detectCollision(p) || !floorLayout.isStrideWithin(p) || !floorLayout.isParticleInside(p)) {
+            if(floorLayout.detectCollision(p) || !floorLayout.isParticleInside(p)) {
                 mov[0] = 0;
                 mov[1] = 0;
                 p.setCurrentLocation(p.getPreviousLocation());
@@ -181,13 +171,10 @@ public class ParticleFilter {
     }
 
     // Initial Belief PF
-    public void initialBelief(ArrayList<ArrayList<Integer>> rssiData){
+    public void initialBeliefBayesKNN(ArrayList<ArrayList<Integer>> rssiData){
         // Get instance of visited path
         ArrayList<Float> visitedPathX = VisitedPath.getInstance().getPathX();
         ArrayList<Float> visitedPathY = VisitedPath.getInstance().getPathY();
-
-        Log.i("RSSI TEST", "pathsize " + visitedPathX.size() + " rssiSize" + rssiData.size());
-        Log.i("RSSI TEST", " " + rssiData);
 
         // If visited path is empty and no rssiData yet, return
         if (visitedPathX.isEmpty() || visitedPathY.isEmpty() || rssiData.isEmpty())
@@ -208,8 +195,6 @@ public class ParticleFilter {
             rssiDistances.add(dist);
         }
 
-        Log.i("RSSI TEST", " "+ rssiDistances);
-
         // Find best RSSI point
         int bestRssiIndex = ArrayOperations.indexFirstMinimumFrom(0, rssiDistances);
         float x0 = visitedPathX.get(visitedPathX.size()-bestRssiIndex-1);
@@ -222,8 +207,7 @@ public class ParticleFilter {
 
         while(i < N_PARTICLES) {
             Particle p = new Particle(x0 + (float) rand.nextGaussian() * sigma,
-                    y0 + (float) rand.nextGaussian() * sigma,
-                    (float)(Math.random() * (MAX_STRIDE - MIN_STRIDE) + MIN_STRIDE));
+                    y0 + (float) rand.nextGaussian() * sigma);
             // Check if the particle is inside floor plan.
             if (floorLayout.isParticleInside(p)) {
                 particles.add(p);
@@ -238,18 +222,15 @@ public class ParticleFilter {
         float yavg = 0f;
         float xstdev = 0f;
         float ystdev = 0f;
-        float savg = 0f;
         float sstdev = 0f;
 
         for (Particle p : particles){
             xavg += p.getCurrentLocation().getX()/particles.size();
             yavg += p.getCurrentLocation().getY()/particles.size();
-            savg += p.getCurrentStride()/particles.size();
         }
         for (Particle p : particles){
             xstdev += (p.getCurrentLocation().getX()-xavg)*(p.getCurrentLocation().getX()-xavg);
             ystdev += (p.getCurrentLocation().getY()-yavg)*(p.getCurrentLocation().getY()-yavg);
-            sstdev += (p.getCurrentStride()-savg)*(p.getCurrentStride()-savg);
         }
 
         // Normalize
@@ -276,8 +257,7 @@ public class ParticleFilter {
 
         ArrayList<Particle> bestParticleList = new ArrayList<>();
         for(Particle p : particles){
-            bestParticleList.add(new Particle(p.getCurrentLocation(), p.getPreviousLocation(),
-                    p.getCurrentStride(), p.getPreviousStride()));
+            bestParticleList.add(new Particle(p.getCurrentLocation(), p.getPreviousLocation()));
         }
 
         // Check distance for each particle
@@ -293,8 +273,6 @@ public class ParticleFilter {
         // Clear best particle list
         bestParticleList.clear();
 
-        //scorePercentate = (count[ArrayOperations.indexFirstMaximumFromInt(0,count)]*100)/(float)N_INIT;
-        //Log.i("BP test","score :"+ scorePercentate);
         return particles.get(ArrayOperations.indexFirstMaximumFromInt(0,count));
     }
 
@@ -304,8 +282,8 @@ public class ParticleFilter {
     }
 
     // Set converged Particle
-    public void setConvergedParticle(Location convLoc, float convStride) {
+    public void setConvergedParticle(Location convLoc) {
         particles.clear();
-        particles.add(new Particle(convLoc, convStride));
+        particles.add(new Particle(convLoc));
     }
 }

@@ -49,6 +49,7 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.RunUpd
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.CompassGUI;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.LocalizationMap;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.Accelerometer;
+import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.LinearAccelero;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.ObserverSensor;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.RotationSensor;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Sensor.WiFi;
@@ -71,7 +72,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     // Sensors
     private SensorManager sensorManager;
     private RotationSensor orientation;
-    private Accelerometer accelerometer;
+    private LinearAccelero accelerometer;
     private WifiManager wifiManager;
     private WiFi wifi;
     private boolean isRegisteredWifi = false;
@@ -174,6 +175,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
 
         // Get activity type
         activityType = ActivityType.getInstance();
+        curWindowSize = activityMonitoring.getWindowSize();
 
         // Loading
         loading = new ProgressDialog(this);
@@ -241,12 +243,11 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     @Override
     public void update(int SensorType) {
 
-        if(SensorType == Sensor.TYPE_ACCELEROMETER) {
-
+        if(SensorType == Sensor.TYPE_LINEAR_ACCELERATION) {
             // Collect accelero data as large as WINDOW SIZE
-            this.accelX.add(Accelerometer.getGravity()[0]);
-            this.accelY.add(Accelerometer.getGravity()[1]);
-            this.accelZ.add(Accelerometer.getGravity()[2]);
+            this.accelX.add(LinearAccelero.getLinearAcceleration()[0]);
+            this.accelY.add(LinearAccelero.getLinearAcceleration()[1]);
+            this.accelZ.add(LinearAccelero.getLinearAcceleration()[2]);
             this.numSample = this.numSample + 1;
 
             if(activityMonitoring.getActivity() == Type.WALKING) {
@@ -257,23 +258,27 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 }
             }
 
-            if (this.accelX.size() >= activityMonitoring.getWindowSize() && this.numSample >= ACC_SAMPLE) {
-                if(isLoading){
+            if(isLoading){
+                if (this.numSample >= curWindowSize) {
                     loading.dismiss();
                     isLoading = false;
                 }
-                for (int j=0; j<ACC_SAMPLE; j++) {
-                    this.accelX.remove(0);
-                    this.accelY.remove(0);
-                    this.accelZ.remove(0);
+            } else {
+                if(this.accelX.size() >= curWindowSize && this.numSample >= ACC_SAMPLE) {
+                    // Create runnable activity monitoring
+                    RunUpdateActivity runUpdateActivity = new RunUpdateActivity(accelX, accelY, accelZ, activityMonitoring);
+
+                    // Add runnable to queue
+                    executor.submit(runUpdateActivity);
+
+                    for (int j = 0; j < ACC_SAMPLE; j++) {
+                        this.accelX.remove(0);
+                        this.accelY.remove(0);
+                        this.accelZ.remove(0);
+                    }
+                    this.numSample = 0;
+                    curWindowSize = activityMonitoring.getWindowSize();
                 }
-                this.numSample = 0;
-
-                // Create runnable activity monitoring
-                RunUpdateActivity runUpdateActivity = new RunUpdateActivity(accelX, accelY, accelZ, activityMonitoring);
-
-                // Add runnable to queue
-                executor.submit(runUpdateActivity);
             }
         } else if(SensorType == Sensor.TYPE_ROTATION_VECTOR) {
             float prevAngle = angle;
@@ -379,7 +384,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
         // Accelerometer
-        accelerometer = new Accelerometer(sensorManager);
+        accelerometer = new LinearAccelero(sensorManager);
         accelerometer.attach(this);
 
         // Orientation
@@ -550,14 +555,10 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        activityMonitoring.clearStepCountList();
-
-                        strideLength = localizationMonitor.getParticles().get(0).getCurrentStride();
-                        Log.d(this.getClass().getSimpleName(),"strideLength: "+strideLength);
                         // Create runnable localization
                         RunUpdateLocalization runUpdateLocalization = new RunUpdateLocalization(
                                 angle, localizationMonitor, localizationView, compassGUI, stepCount,
-                                strideLength, getApplicationContext());
+                                getApplicationContext());
 
                         totalStep += stepCount;
                         stepCount = 0;

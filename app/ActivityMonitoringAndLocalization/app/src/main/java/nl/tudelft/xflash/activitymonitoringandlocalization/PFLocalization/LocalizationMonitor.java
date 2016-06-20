@@ -37,8 +37,8 @@ public class LocalizationMonitor {
     }
 
     // Execute initial belief
-    public void initialBelief(ArrayList<ArrayList<Integer>> rssiData){
-        pf.initialBelief(rssiData);
+    public void initialBeliefBayesKNN(ArrayList<ArrayList<Integer>> rssiData){
+        pf.initialBeliefBayesKNN(rssiData);
         activityList.empty();
     }
 
@@ -60,7 +60,7 @@ public class LocalizationMonitor {
     }
 
     // Update the localization based on orientation data and step count
-    public boolean update(float angle, int stepCount, float strideLength) {
+    public boolean update(float angle, int stepCount) {
 
         //Type activity = activityList.getType(activityList.size() - 1);
 
@@ -68,9 +68,9 @@ public class LocalizationMonitor {
             this.angle = angle;
 
             if (!particleHasConverged) {
-                pf.movement(angle, stepCount, strideLength);
+                pf.movement(angle, stepCount);
             } else {
-                pf.movementBest(angle, stepCount, strideLength);
+                pf.movementBest(angle, stepCount);
             }
             mov = pf.getMovement();
 
@@ -94,8 +94,8 @@ public class LocalizationMonitor {
     }
 
     // Set converged particle (1 best particle)
-    public void setConvergedParticle(Location convLoc, float convStride) {
-        pf.setConvergedParticle(convLoc, convStride);
+    public void setConvergedParticle(Location convLoc) {
+        pf.setConvergedParticle(convLoc);
     }
 
     // Set particle has converged flag

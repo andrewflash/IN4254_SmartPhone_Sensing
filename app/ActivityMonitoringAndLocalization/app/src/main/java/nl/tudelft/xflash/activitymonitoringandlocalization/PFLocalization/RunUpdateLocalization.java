@@ -1,13 +1,7 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization;
 
 import android.content.Context;
-import android.os.AsyncTask;
-import android.util.Log;
 
-import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.ActivityMonitoring;
-import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Database.WifiDBHandler;
-import nl.tudelft.xflash.activitymonitoringandlocalization.Database.WifiData;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.Location;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.ParticleFilter.Particle;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.UI.CompassGUI;
@@ -37,7 +31,7 @@ public class RunUpdateLocalization implements Runnable {
 
     public RunUpdateLocalization(float angle, LocalizationMonitor locMon,
                                  LocalizationMap locMap, CompassGUI compGUI, int stepCount,
-                                 float strideLength, Context context)
+                                 Context context)
     {
         this.angle = angle;
         this.localizationMonitor = locMon;
@@ -47,7 +41,6 @@ public class RunUpdateLocalization implements Runnable {
         this.visitedPath = VisitedPath.getInstance();
         this.particleHasConverged = false;
         this.context = context;
-        this.strideLength = strideLength;
     }
 
     public Context getAppContext() {
@@ -59,7 +52,7 @@ public class RunUpdateLocalization implements Runnable {
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
 
         // Update localization monitor
-        if (this.localizationMonitor.update(angle,stepCount,strideLength)) {
+        if (this.localizationMonitor.update(angle,stepCount)) {
             // Check for convergence of particles
             if(!particleHasConverged) {
                 convergedLoc = localizationMonitor.particleConverged();
@@ -72,8 +65,7 @@ public class RunUpdateLocalization implements Runnable {
                             localizationMap.setConvLocation(convergeParticle);
                         }
                     });
-                    localizationMonitor.setConvergedParticle(convergeParticle.getCurrentLocation(),
-                            convergeParticle.getCurrentStride());
+                    localizationMonitor.setConvergedParticle(convergeParticle.getCurrentLocation());
                     particleHasConverged = true;
                     localizationMonitor.setParticleHasConverged(true);
                 }

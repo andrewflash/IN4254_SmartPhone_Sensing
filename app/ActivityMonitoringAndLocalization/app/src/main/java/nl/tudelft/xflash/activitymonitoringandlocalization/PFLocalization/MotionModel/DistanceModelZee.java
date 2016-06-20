@@ -21,7 +21,7 @@ public class DistanceModelZee {
     }
 
     // Estimate distance (dx and dy)
-    public float[] getDistance(float alpha, int stepCount, float strideLength) {
+    public float[] getDistance(float alpha, int stepCount, float angleOffset, float strideLength) {
         //Gaussian distribution of mean alpha and stdev alphaDeviation
         //float alphaDeviation = 0.8859f;   // in radians
         float alphaDeviation = 0.1f;   // in radians
@@ -29,7 +29,8 @@ public class DistanceModelZee {
 
         // Add gaussian noise to the angle
         float alphaNoise = alpha + (float)Math.toRadians(floorLayout.getNorthAngle())
-                + alphaMean + (float) rand.nextGaussian()*alphaDeviation;
+                + alphaMean + (float) rand.nextGaussian()*alphaDeviation +
+                angleOffset;
 
         float randerr = (float) (Math.random() * (0.1 + 0.1) -0.1)*strideLength;
 

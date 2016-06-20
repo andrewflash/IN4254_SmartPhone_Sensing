@@ -11,7 +11,7 @@ import android.util.Log;
 public class Accelerometer extends AbstractSensor {
 
     private static float[] gravity = {0f,0f,0f};
-    private static final float alpha = 0.1f; // alpha filter, low-pass filter
+    private static final float alpha = 0.8f; // alpha filter, low-pass filter
 
     public Accelerometer(SensorManager sm){
         super(sm);
