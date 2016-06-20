@@ -60,6 +60,7 @@ public class WifiDBHandler extends SQLiteOpenHelper {
     // Adding new data
     public void addWifiData(WifiData wifiData) {
         SQLiteDatabase db = this.getWritableDatabase();
+        int idx = -1;
 
         ContentValues values = new ContentValues();
         values.put(KEY_X, wifiData.getX());
@@ -67,8 +68,15 @@ public class WifiDBHandler extends SQLiteOpenHelper {
         values.put(KEY_ZONE, wifiData.getZone());
         values.put(KEY_SSID, wifiData.get_ssid());
         values.put(KEY_TIMESTAMP, System.currentTimeMillis());
-        // Inserting Row
-        db.insertWithOnConflict(TABLE_WIFI, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+
+        idx = isWifiDataExists(wifiData.getX(),wifiData.getY());
+        if(idx == -1){
+            // Inserting Row
+            db.insertWithOnConflict(TABLE_WIFI, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        } else {
+            db.update(TABLE_WIFI, values, KEY_ID + " = ?",
+                    new String[]{String.valueOf(idx)});
+        }
         db.close(); // Closing database connection
     }
 
@@ -89,6 +97,24 @@ public class WifiDBHandler extends SQLiteOpenHelper {
         wifiData.setTime(Long.parseLong(cursor.getString(5)));
 // return wifiData
         return wifiData;
+    }
+
+    // Check if exists
+    public int isWifiDataExists(double x, double y) {
+        int idx = -1;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_WIFI, new String[]{KEY_ID, KEY_X, KEY_Y},
+                KEY_X + "=?" + " AND " + KEY_Y + "=?",
+                new String[]{String.valueOf(x),String.valueOf(y)},
+                null, null, null, "1");
+        if (cursor != null){
+            if(cursor.getCount() > 0){
+                cursor.moveToFirst();
+                idx = Integer.parseInt(cursor.getString(0));
+            }
+        }
+        cursor.close();
+        return idx;
     }
 
     // Getting Some WifiData Based on a Certain id Range

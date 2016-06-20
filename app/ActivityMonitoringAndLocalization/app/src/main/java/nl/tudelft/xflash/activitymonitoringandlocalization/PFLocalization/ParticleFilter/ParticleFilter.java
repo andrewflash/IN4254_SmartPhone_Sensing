@@ -27,8 +27,7 @@ public class ParticleFilter {
     private final int N_PARTICLES;
     private final float RATIO = 9f/10;
 
-    private Random rand;
-    private ArrayList<Float> dx,dy, ds;
+    private ArrayList<Float> dx,dy;
     private DistanceModelZee distanceModelZee;
     private float[] mov = {0,0};
 
@@ -37,7 +36,6 @@ public class ParticleFilter {
         this.N_PARTICLES = n;
         this.floorLayout = floorLayout;
         this.generateParticles(N_PARTICLES);
-        this.rand = new Random();
         this.dx = new ArrayList<>();
         this.dy = new ArrayList<>();
         this.distanceModelZee = new DistanceModelZee(this.floorLayout);
@@ -92,9 +90,13 @@ public class ParticleFilter {
             p.updateLocation(mov[0], mov[1]);
             if(floorLayout.detectCollision(p)){
                 collisionParticles.add(p);
+                mov[0] = 0;
+                mov[1] = 0;
             }
             else if (!floorLayout.isParticleInside(p)){
                 collisionParticles.add(p);
+                mov[0] = 0;
+                mov[1] = 0;
             }
             else{
                 dx.add(mov[0]);
@@ -163,9 +165,10 @@ public class ParticleFilter {
                 mov[0] = 0;
                 mov[1] = 0;
                 p.setCurrentLocation(p.getPreviousLocation());
+            } else {
+                dx.add(mov[0]);
+                dy.add(mov[1]);
             }
-            dx.add(mov[0]);
-            dy.add(mov[1]);
         }
 
         // New movement (not yet converged), then update the path
