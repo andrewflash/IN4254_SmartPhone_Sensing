@@ -157,8 +157,8 @@ public class Nasc {
     }
 
     public ArrayList<Float> normalizeAcceleroArrayList(List<Float> acceleroDataX,
-                                                        List<Float> acceleroDataY,
-                                                        List<Float> acceleroDataZ) {
+                                                       List<Float> acceleroDataY,
+                                                       List<Float> acceleroDataZ) {
 
         ArrayList<Float> normAccel = new ArrayList<>();
 

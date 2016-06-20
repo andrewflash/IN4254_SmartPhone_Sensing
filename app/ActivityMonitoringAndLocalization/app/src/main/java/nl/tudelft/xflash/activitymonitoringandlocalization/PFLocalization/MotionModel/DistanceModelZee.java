@@ -25,11 +25,12 @@ public class DistanceModelZee {
         //Gaussian distribution of mean alpha and stdev alphaDeviation
         //float alphaDeviation = 0.8859f;   // in radians
         float alphaDeviation = 0.1f;   // in radians
-        float alphaMean = 0f;    // in radians
+        float alphaMean = -0.1f;    // in radians
 
         // Add gaussian noise to the angle
         float alphaNoise = alpha + (float)Math.toRadians(floorLayout.getNorthAngle())
                 + alphaMean + (float) rand.nextGaussian()*alphaDeviation +
+                + (float)Math.toRadians(90) +
                 angleOffset;
 
         float randerr = (float) (Math.random() * (0.1 + 0.1) -0.1)*strideLength;

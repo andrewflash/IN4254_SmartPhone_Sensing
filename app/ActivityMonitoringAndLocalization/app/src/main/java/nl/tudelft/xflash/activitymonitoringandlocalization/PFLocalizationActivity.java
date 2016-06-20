@@ -67,7 +67,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private LinearLayout compassLayout;
 
     // Particles
-    private static final int N_PARTICLES = 1000;
+    private static final int N_PARTICLES = 5000;
 
     // Sensors
     private SensorManager sensorManager;
@@ -283,12 +283,12 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 }
             }
         } else if(SensorType == Sensor.TYPE_ROTATION_VECTOR) {
-            float prevAngle = angle;
+            //float prevAngle = angle;
             angle = RotationSensor.getAngleRad();
-            // Prevent spike
-            if(Math.abs(angle - prevAngle) > Math.toRadians(300)){
-                angle = prevAngle;
-            }
+//            // Prevent spike
+//            if(Math.abs(angle - prevAngle) > Math.toRadians(300)){
+//                angle = prevAngle;
+//            }
         }
     }
 
@@ -522,7 +522,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     }
 
     public void updateInfoView() {
-        txtAngle.setText(di.format(Math.toDegrees(angle)) + '\u00B0');
+        txtAngle.setText(di.format(RotationSensor.getAngleDeg()) + '\u00B0');
         txtTotalStep.setText(di.format(totalStep));
         txtdX.setText(d.format(localizationMonitor.getMovement()[0]) + " m");
         txtdY.setText(d.format(localizationMonitor.getMovement()[1]) + " m");
