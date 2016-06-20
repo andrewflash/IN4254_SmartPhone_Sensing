@@ -29,8 +29,8 @@
     <string name="lbl_orien_roll">Roll (Y):</string>
     <string name="lbl_activity_PF">Activity:</string>
     <string name="btn_initial_belief_PA">INITIAL BELIEF PA</string>
-    <string name="btn_initial_belief_bayes">INITIAL BELIEF BAYES</string>
-    <string name="btn_sense_bayes">SENSE BAYES</string>
+    <string name="btn_initial_belief_bayes">SCAN WIFI</string>
+    <string name="btn_sense_bayes">LOCATE ME</string>
     <string name="lbl_accel_X">Accel-X:</string>
     <string name="lbl_accel_Y">Accel-Y:</string>
     <string name="lbl_accel_Z">Accel-Z:</string>
