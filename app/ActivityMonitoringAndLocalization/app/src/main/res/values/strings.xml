@@ -60,6 +60,6 @@
     <string name="clear_data">Clear Data</string>
     <string name="assignment_1">Assignment 1</string>
     <string name="initial_belief_pa">Initial Belief PA</string>
-    <string name="initial_belief_bayes">Initial Belief Bayes</string>
-    <string name="sense_bayes">Sense Bayes</string>
+    <string name="initial_belief_bayes">Scan Wifi</string>
+    <string name="sense_bayes">Locate Me</string>
 </resources>

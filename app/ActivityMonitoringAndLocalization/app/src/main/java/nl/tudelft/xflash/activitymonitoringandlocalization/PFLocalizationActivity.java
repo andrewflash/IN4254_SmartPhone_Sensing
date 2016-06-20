@@ -298,25 +298,12 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             if(!isSensing) {
                 if (isParticleConverged) {
                     List<ScanResult> wifiResults = (List<ScanResult>) o;
-                    JSONArray jsonWifiList = new JSONArray();
-
-                    try {
-                        for (ScanResult wifiRes : wifiResults) {
-                            JSONObject jsonWifiData = new JSONObject();
-                            jsonWifiData.put("bssid", (String) wifiRes.BSSID);
-                            jsonWifiData.put("level", (int) wifiRes.level);
-                            jsonWifiList.put(jsonWifiData);
-                        }
-                    } catch (JSONException e) {
-                        Log.e(this.getClass().getSimpleName(), "JSON Wifi error: " + e.getMessage());
-                    }
-
-                    Log.d(this.getClass().getSimpleName(), "JSON data: " + jsonWifiList.toString());
+                    String jsonWifiList = wifiDb.packWifiJSON(wifiResults);
 
                     WifiData wifiData = new WifiData(
                             localizationMonitor.getParticles().get(0).getCurrentLocation().getX(),
                             localizationMonitor.getParticles().get(0).getCurrentLocation().getY(),
-                            localizationMonitor.getCellLocation(), jsonWifiList.toString());
+                            localizationMonitor.getCellLocation(), jsonWifiList);
 
                     AddWifiData addWifiData = new AddWifiData(wifiData);
                     addWifiData.execute();
@@ -326,7 +313,24 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             } else {
                 loading.dismiss();
                 isSensing = false;
-                isParticleConverged = true;
+                List<ScanResult> wifiResults = (List<ScanResult>) o;
+                List<WifiData> wifiList = wifiDb.getAllWifiData();
+                boolean isLocated = localizationMonitor.initialBeliefBayesKNN(wifiResults,wifiList);
+                if(isLocated){
+                    isParticleConverged = true;
+                    this.localizationView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            localizationView.setConvLocation(localizationMonitor.getParticles().get(0));
+                            localizationView.invalidate();
+                        }
+                    });
+                    localizationMonitor.setParticleHasConverged(true);
+                } else {
+                    Toast.makeText(this.getApplicationContext(),(CharSequence)"Could not detect location",Toast.LENGTH_LONG).show();
+                }
+                accelerometer.register(SAMPLING_RATE_ACC);
+                orientation.register(SAMPLING_RATE_ORIENTATION);
                 Log.d(this.getClass().getSimpleName(), "Sensing Bayes");
             }
         }
@@ -470,14 +474,14 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                         setUpdateWifiSignal();
                         isSetSchedulerWifi = true;
                     }
-                    btnInitialBeliefBayes.setText("STOP INITIAL BAYES");
+                    btnInitialBeliefBayes.setText("SCAN WIFI");
                     btnSenseBayes.setEnabled(false);
                     initInitialBeliefBayes = true;
                 } else {
                     schedulerTimerWifi.cancel();
                     schedulerTimerWifi.purge();
                     schedulerTimerWifi = null;
-                    btnInitialBeliefBayes.setText("INITIAL BELIEF BAYES");
+                    btnInitialBeliefBayes.setText("STOP SCANNING");
                     initInitialBeliefBayes = false;
                     btnSenseBayes.setEnabled(true);
                     isSetSchedulerWifi = false;
@@ -493,7 +497,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 wifiManager.startScan();
                 wifi.getObservable().mySetChanged();
                 loading.setTitle("Loading");
-                loading.setMessage("Scanning Wifi...");
+                loading.setMessage("Analyzing current location from Wifi data");
                 loading.show();
             }
         });
