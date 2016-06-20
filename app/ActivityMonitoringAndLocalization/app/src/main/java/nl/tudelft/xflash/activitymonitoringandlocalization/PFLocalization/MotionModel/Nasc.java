@@ -43,7 +43,7 @@ public class Nasc {
         // get mean from m to m+t-1
 //        arrAcceleroData = normalizeAcceleroList(this.arrayListX.subList(0, t),
 //                this.arrayListY.subList(0, t), this.arrayListZ.subList(0, t));
-        arrAcceleroData = AcceleroListToDouble(this.arrayListX.subList(arrayListX.size()-t-t,arrayListX.size()-t));
+        arrAcceleroData = AcceleroListToDouble(this.arrayListZ.subList(arrayListZ.size()-t-t,arrayListZ.size()-t));
         Statistics stats = new Statistics(arrAcceleroData);
         mu1 = stats.getMean();
 
@@ -53,7 +53,7 @@ public class Nasc {
         // get mean from m+t to m+t+t-1
 //        arrAcceleroData = normalizeAcceleroList(this.arrayListX.subList(t, t+t),
 //                this.arrayListY.subList(t, t+t), this.arrayListZ.subList(t, t+t));
-        arrAcceleroData = AcceleroListToDouble(this.arrayListX.subList(arrayListX.size()-t,arrayListX.size()));
+        arrAcceleroData = AcceleroListToDouble(this.arrayListZ.subList(arrayListZ.size()-t,arrayListZ.size()));
         stats = new Statistics(arrAcceleroData);
         mu2 = stats.getMean();
 
@@ -61,13 +61,13 @@ public class Nasc {
         stdev2 = stats.getStdDev();
 
 //        Log.d(this.getClass().getSimpleName(), "for loop");
-        for (k = arrayListX.size()-t-t; k < arrayListX.size()-t; k++) {
+        for (k = arrayListZ.size()-t-t; k < arrayListZ.size()-t; k++) {
             // get accelerometer m+k
 //            a = normalizeAcceleroData(this.arrayListX.get(k), this.arrayListY.get(k), this.arrayListZ.get(k));
-            a = this.arrayListX.get(k);
+            a = this.arrayListZ.get(k);
             // get accelerometer m+k+t
 //            b = normalizeAcceleroData(this.arrayListX.get(k+t), this.arrayListY.get(k+t), this.arrayListZ.get(k+t));
-            b = this.arrayListX.get(k+t);
+            b = this.arrayListZ.get(k+t);
             upper = upper + (a-mu1)*(b-mu2);
         }
 
