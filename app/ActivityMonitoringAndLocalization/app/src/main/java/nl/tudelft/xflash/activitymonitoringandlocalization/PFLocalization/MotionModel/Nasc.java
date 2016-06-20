@@ -43,7 +43,7 @@ public class Nasc {
         // get mean from m to m+t-1
 //        arrAcceleroData = normalizeAcceleroList(this.arrayListX.subList(0, t),
 //                this.arrayListY.subList(0, t), this.arrayListZ.subList(0, t));
-        arrAcceleroData = AcceleroListToDouble(this.arrayListX.subList(0,t));
+        arrAcceleroData = AcceleroListToDouble(this.arrayListX.subList(arrayListX.size()-t-t,arrayListX.size()-t));
         Statistics stats = new Statistics(arrAcceleroData);
         mu1 = stats.getMean();
 
@@ -53,7 +53,7 @@ public class Nasc {
         // get mean from m+t to m+t+t-1
 //        arrAcceleroData = normalizeAcceleroList(this.arrayListX.subList(t, t+t),
 //                this.arrayListY.subList(t, t+t), this.arrayListZ.subList(t, t+t));
-        arrAcceleroData = AcceleroListToDouble(this.arrayListX.subList(t,t+t));
+        arrAcceleroData = AcceleroListToDouble(this.arrayListX.subList(arrayListX.size()-t,arrayListX.size()));
         stats = new Statistics(arrAcceleroData);
         mu2 = stats.getMean();
 
@@ -61,7 +61,7 @@ public class Nasc {
         stdev2 = stats.getStdDev();
 
 //        Log.d(this.getClass().getSimpleName(), "for loop");
-        for (k = 0; k < t; k++) {
+        for (k = arrayListX.size()-t-t; k < arrayListX.size()-t; k++) {
             // get accelerometer m+k
 //            a = normalizeAcceleroData(this.arrayListX.get(k), this.arrayListY.get(k), this.arrayListZ.get(k));
             a = this.arrayListX.get(k);
@@ -163,7 +163,8 @@ public class Nasc {
         ArrayList<Float> normAccel = new ArrayList<>();
 
         for(int i=0;i<acceleroDataX.size();i++){
-            normAccel.add((float)Math.sqrt(Math.pow(acceleroDataX.get(i),2) + Math.pow(acceleroDataY.get(i),2) +
+            normAccel.add((float)Math.sqrt(Math.pow(acceleroDataX.get(i),2) +
+                    Math.pow(acceleroDataY.get(i),2) +
                     Math.pow(acceleroDataZ.get(i),2)));
         }
 
@@ -186,8 +187,10 @@ public class Nasc {
         arrAcceleroData = new double[this.arrayListX.size()];
 
         // get stdev from m to m+topt-1
-        arrAcceleroData = normalizeAcceleroList(this.arrayListX.subList(0, this.tOpt),
-                this.arrayListY.subList(0, this.tOpt), this.arrayListZ.subList(0, this.tOpt));
+        arrAcceleroData = normalizeAcceleroList(
+                this.arrayListX.subList(arrayListX.size()-this.tOpt, arrayListX.size()),
+                this.arrayListY.subList(arrayListY.size()-this.tOpt, arrayListY.size()),
+                this.arrayListZ.subList(arrayListZ.size()-this.tOpt, arrayListZ.size()));
         Statistics stats = new Statistics(arrAcceleroData);
         stdev = stats.getStdDev();
 
