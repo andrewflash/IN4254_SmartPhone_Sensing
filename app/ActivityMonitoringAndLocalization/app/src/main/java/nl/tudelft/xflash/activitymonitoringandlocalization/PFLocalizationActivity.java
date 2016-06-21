@@ -67,7 +67,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private LinearLayout compassLayout;
 
     // Particles
-    private static final int N_PARTICLES = 2500;
+    private static final int N_PARTICLES = 3500;
 
     // Sensors
     private SensorManager sensorManager;
@@ -111,7 +111,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private boolean isSetSchedulerWifi = false;
 
     // Timers in milliseconds
-    private static final int PERIOD_LOCALIZATION = 50;
+    private static final int PERIOD_LOCALIZATION = 150;
     private static final int PERIOD_UPDATE_INFO = 50;
     private static final int PERIOD_WIFI = 5000;
 
@@ -195,6 +195,10 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         // Init Sensors
         initSensors();
 
+        // Initialise Sensor
+        accelerometer.register(SAMPLING_RATE_ACC);
+        orientation.register(SAMPLING_RATE_ORIENTATION);
+
         // Update View in GUI
         setUpdateInfoSchedule();
 
@@ -249,7 +253,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     @Override
     public void update(int SensorType) {
 
-        if(SensorType == Sensor.TYPE_LINEAR_ACCELERATION) {
+        if(SensorType == Sensor.TYPE_LINEAR_ACCELERATION && (initInitialBeliefPA || initInitialBeliefBayes) ) {
             // Collect accelero data as large as WINDOW SIZE
             this.accelX.add(LinearAccelero.getLinearAcceleration()[0]);
             this.accelY.add(LinearAccelero.getLinearAcceleration()[1]);
@@ -446,8 +450,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     loading.setTitle("Loading");
                     loading.setMessage("Collecting samples...");
                     loading.show();
-                    accelerometer.register(SAMPLING_RATE_ACC);
-                    orientation.register(SAMPLING_RATE_ORIENTATION);
 
                     setUpdateLocalizationMonitoring();
 
@@ -568,24 +570,25 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     public void run() {
                         // Create runnable localization
                         RunUpdateLocalization runUpdateLocalization;
+                        if (initInitialBeliefPA || initInitialBeliefBayes) {
+                            if (activityMonitoring.getActivity() == Type.WALKING) {
+                                runUpdateLocalization = new RunUpdateLocalization(
+                                        curAngle, localizationMonitor, localizationView, compassGUI, stepCount,
+                                        getApplicationContext());
+                            } else {
+                                runUpdateLocalization = new RunUpdateLocalization(
+                                        angle, localizationMonitor, localizationView, compassGUI, stepCount,
+                                        getApplicationContext());
+                            }
+                            totalStep += stepCount;
+                            stepCount = 0;
 
-                        if(activityMonitoring.getActivity() == Type.WALKING) {
-                            runUpdateLocalization = new RunUpdateLocalization(
-                                    curAngle, localizationMonitor, localizationView, compassGUI, stepCount,
-                                    getApplicationContext());
-                        } else {
-                            runUpdateLocalization = new RunUpdateLocalization(
-                                    angle, localizationMonitor, localizationView, compassGUI, stepCount,
-                                    getApplicationContext());
+                            // Add runnable to queue
+                            executor.submit(runUpdateLocalization);
+
+                            // Update particle converged flag
+                            isParticleConverged = localizationMonitor.isParticleHasConverged();
                         }
-                        totalStep += stepCount;
-                        stepCount = 0;
-
-                        // Add runnable to queue
-                        executor.submit(runUpdateLocalization);
-
-                        // Update particle converged flag
-                        isParticleConverged = localizationMonitor.isParticleHasConverged();
                     }
                 });
             }
