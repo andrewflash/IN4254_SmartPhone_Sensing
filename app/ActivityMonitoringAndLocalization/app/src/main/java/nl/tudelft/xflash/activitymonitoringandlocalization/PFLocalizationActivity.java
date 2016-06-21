@@ -260,7 +260,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             this.accelZ.add(LinearAccelero.getLinearAcceleration()[2]);
             this.numSample = this.numSample + 1;
 
-            if(activityMonitoring.getActivity() == Type.WALKING) {
+            if(activityMonitoring.getActivity() == Type.WALKING && (initInitialBeliefPA || initInitialBeliefBayes)) {
                 this.stepSamples = this.stepSamples + 1;
                 if (this.stepSamples >= activityMonitoring.getTOpt() / 2) {
                     this.stepCount = this.stepCount + 1;
@@ -293,7 +293,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             }
         } else if(SensorType == Sensor.TYPE_ROTATION_VECTOR) {
             //float prevAngle = angle;
-            angle = RotationSensor.getAngleRad();
+            angle = RotationSensor.getAngleDeg();
 //            // Prevent spike
 //            if(Math.abs(angle - prevAngle) > Math.toRadians(300)){
 //                angle = prevAngle;
@@ -340,8 +340,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 } else {
                     Toast.makeText(this.getApplicationContext(),(CharSequence)"Could not detect location",Toast.LENGTH_LONG).show();
                 }
-                accelerometer.register(SAMPLING_RATE_ACC);
-                orientation.register(SAMPLING_RATE_ORIENTATION);
                 Log.d(this.getClass().getSimpleName(), "Sensing Bayes");
             }
         }
@@ -405,6 +403,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         // Orientation
         orientation = new RotationSensor(sensorManager);
         orientation.attach(this);
+
+        accelerometer.register(SAMPLING_RATE_ACC);
+        orientation.register(SAMPLING_RATE_ORIENTATION);
     }
 
     private void initWifi() {
@@ -469,6 +470,10 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     accelY.clear();
                     accelZ.clear();
                     initInitialBeliefPA = false;
+
+                    schedulerTimerLocalization.cancel();
+                    schedulerTimerLocalization.purge();
+
                     btnInitialBeliefPA.setText("INITIAL BELIEF PA");
                 }
             }
@@ -529,7 +534,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     }
 
     public void updateInfoView() {
-        txtAngle.setText(di.format(RotationSensor.getAngleDeg()) + '\u00B0');
+        txtAngle.setText(di.format(angle) + '\u00B0');
         txtTotalStep.setText(di.format(totalStep));
         txtdX.setText(d.format(localizationMonitor.getMovement()[0]) + " m");
         txtdY.setText(d.format(localizationMonitor.getMovement()[1]) + " m");
