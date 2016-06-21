@@ -198,9 +198,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         // Update View in GUI
         setUpdateInfoSchedule();
 
-        // Update localization monitoring
-        setUpdateLocalizationMonitoring();
-
         // Init Wifi
         initWifi();
     }
@@ -259,9 +256,14 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             if(activityMonitoring.getActivity() == Type.WALKING) {
                 this.stepSamples = this.stepSamples + 1;
                 if (this.stepSamples >= activityMonitoring.getTOpt() / 2) {
-                    this.stepCount = this.stepCount + 1;
                     this.stepSamples = 0;
+                    this.stepCount = this.stepCount + 1;
                     this.curAngle = angle;
+                    RunUpdateLocalization runUpdateLocalization;
+                    runUpdateLocalization = new RunUpdateLocalization(
+                            curAngle, localizationMonitor, localizationView, compassGUI,
+                            getApplicationContext());
+                    executor.submit(runUpdateLocalization);
                 }
             }
 
@@ -449,8 +451,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     accelerometer.register(SAMPLING_RATE_ACC);
                     orientation.register(SAMPLING_RATE_ORIENTATION);
 
-                    setUpdateLocalizationMonitoring();
-
                     localizationMonitor.reset();
                     btnInitialBeliefPA.setText("STOP INITIAL BELIEF");
 
@@ -528,7 +528,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
 
     public void updateInfoView() {
         txtAngle.setText(di.format(RotationSensor.getAngleDeg()) + '\u00B0');
-        txtTotalStep.setText(di.format(totalStep));
+        txtTotalStep.setText(di.format(stepCount));
         txtdX.setText(d.format(localizationMonitor.getMovement()[0]) + " m");
         txtdY.setText(d.format(localizationMonitor.getMovement()[1]) + " m");
         txtActivityPF.setText(activityMonitoring.getActivity().toString());
@@ -557,40 +557,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             }
         };
         schedulerTimerUpdateInfo.scheduleAtFixedRate(task,0,PERIOD_UPDATE_INFO);
-    }
-
-    public void setUpdateLocalizationMonitoring() {
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        // Create runnable localization
-                        RunUpdateLocalization runUpdateLocalization;
-
-                        if(activityMonitoring.getActivity() == Type.WALKING) {
-                            runUpdateLocalization = new RunUpdateLocalization(
-                                    curAngle, localizationMonitor, localizationView, compassGUI, stepCount,
-                                    getApplicationContext());
-                        } else {
-                            runUpdateLocalization = new RunUpdateLocalization(
-                                    angle, localizationMonitor, localizationView, compassGUI, stepCount,
-                                    getApplicationContext());
-                        }
-                        totalStep += stepCount;
-                        stepCount = 0;
-
-                        // Add runnable to queue
-                        executor.submit(runUpdateLocalization);
-
-                        // Update particle converged flag
-                        isParticleConverged = localizationMonitor.isParticleHasConverged();
-                    }
-                });
-            }
-        };
-        schedulerTimerLocalization.scheduleAtFixedRate(task,0,PERIOD_LOCALIZATION);
     }
 
     public void setUpdateWifiSignal() {

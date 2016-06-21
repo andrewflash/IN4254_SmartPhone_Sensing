@@ -64,27 +64,20 @@ public class LocalizationMonitor {
         return this.angle;
     }
 
-    // Update the localization based on orientation data and step count
-    public boolean update(float angle, int stepCount) {
+    // Update the localization based on orientation data
+    public boolean update(float angle) {
 
         //Type activity = activityList.getType(activityList.size() - 1);
 
-        if (stepCount != 0) {
-            this.angle = angle;
+        this.angle = angle;
 
-            if (!particleHasConverged) {
-                pf.movement(angle, stepCount);
-            } else {
-                pf.movementBest(angle, stepCount);
-            }
-            mov = pf.getMovement();
-
-            return true;
+        if (!particleHasConverged) {
+            pf.movement(angle);
         } else {
-            mov[0] = 0;
-            mov[1] = 0;
-            return false;
+            pf.movementBest(angle);
         }
+        mov = pf.getMovement();
+        return true;
     }
 
     // Set radius of convergence = 3, radius of converge of stride = 0.1
