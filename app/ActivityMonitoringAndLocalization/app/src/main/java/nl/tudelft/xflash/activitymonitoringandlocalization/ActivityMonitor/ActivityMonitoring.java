@@ -61,24 +61,19 @@ public class ActivityMonitoring {
 
     // Update activity based on acc data
     public void update(ArrayList<Float> x, ArrayList<Float> y, ArrayList<Float> z) {
-        if(this.finished) {
-            this.finished = false;
-            nasc.setAccelerations(x, y, z);
-            nasc.calculateMaxNACandTopt(this.tmin, this.tmax);
 
-            this.tmin = nasc.gettMin();
-            this.tmax = nasc.gettMax();
-            this.tOpt = nasc.gettOpt();
+//        Long start = System.currentTimeMillis();
+        nasc.setAccelerations(x, y, z);
+        nasc.calculateMaxNACandTopt(this.tmin, this.tmax);
 
-            Type label = this.updateState();
-            activityList.addType(label);
+        this.tmin = nasc.gettMin();
+        this.tmax = nasc.gettMax();
+        this.tOpt = nasc.gettOpt();
 
-            this.finished = true;
-        }
-    }
-
-    public boolean isFinished() {
-        return finished;
+        Type label = this.updateState();
+        activityList.addType(label);
+//        Long stop = System.currentTimeMillis();
+//        Log.d(this.getClass().getSimpleName(), "activity update: " + Long.toString(stop-start));
     }
 
     public int getTOpt(){
