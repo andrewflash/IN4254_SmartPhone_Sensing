@@ -90,7 +90,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private int curWindowSize;
 
     // Sample size of accelerometer
-    private static final int ACC_SAMPLE = 10;
+    private static final int ACC_SAMPLE = 1;
     private int numSample = 0;
 
     // Particle converged flag
@@ -109,6 +109,11 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private Timer schedulerTimerLocalization;
     private Timer schedulerTimerUpdateInfo;
     private boolean isSetSchedulerWifi = false;
+
+    // Timers in milliseconds
+    private static final int PERIOD_LOCALIZATION = 50;
+    private static final int PERIOD_UPDATE_INFO = 50;
+    private static final int PERIOD_WIFI = 5000;
 
     // Thread Queue
     private ExecutorService executor;
@@ -551,7 +556,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 });
             }
         };
-        schedulerTimerUpdateInfo.scheduleAtFixedRate(task,0,250);
+        schedulerTimerUpdateInfo.scheduleAtFixedRate(task,0,PERIOD_UPDATE_INFO);
     }
 
     public void setUpdateLocalizationMonitoring() {
@@ -585,7 +590,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 });
             }
         };
-        schedulerTimerLocalization.scheduleAtFixedRate(task,0,250);
+        schedulerTimerLocalization.scheduleAtFixedRate(task,0,PERIOD_LOCALIZATION);
     }
 
     public void setUpdateWifiSignal() {
@@ -606,7 +611,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 });
             }
         };
-        schedulerTimerWifi.scheduleAtFixedRate(task,0,5000);
+        schedulerTimerWifi.scheduleAtFixedRate(task,0,PERIOD_WIFI);
     }
 
 
