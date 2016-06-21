@@ -111,7 +111,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private boolean isSetSchedulerWifi = false;
 
     // Timers in milliseconds
-    private static final int PERIOD_LOCALIZATION = 50;
+    private static final int PERIOD_LOCALIZATION = 100;
     private static final int PERIOD_UPDATE_INFO = 50;
     private static final int PERIOD_WIFI = 5000;
 
