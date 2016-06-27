@@ -179,6 +179,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         // Monitoring (monitor activity and localization
         activityMonitoring = new ActivityMonitoring(getApplicationContext());
         localizationMonitor = new LocalizationMonitor(getApplicationContext(), floorLayout, N_PARTICLES);
+        localizationMonitor.reset();
 
         // Get activity type
         activityType = ActivityType.getInstance();
@@ -362,6 +363,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         localizationView = new LocalizationMap(this, floorLayout.getPath(),
                 floorLayout.getCellNames(),floorLayout.getCellRectList(),
                 localizationMonitor.getParticles(), screenSize.x, screenSize.y);
+        localizationView.reset();
         localizationView.clearParticles();
 
         // Initialize compass view

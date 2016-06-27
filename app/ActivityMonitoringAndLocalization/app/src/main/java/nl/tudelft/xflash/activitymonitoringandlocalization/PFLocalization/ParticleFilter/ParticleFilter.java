@@ -161,7 +161,7 @@ public class ParticleFilter {
         VisitedPath visitedPath = VisitedPath.getInstance();
 
         for(Particle p : particles) {
-            mov = distanceModelZee.getDistance(alpha,stepCount,p.getStrideLength());
+            mov = distanceModelZee.getDistanceBest(alpha,stepCount,p.getStrideLength());
             p.updateLocation(mov[0], mov[1]);
             // Check particle collision with walls
             if(floorLayout.detectCollision(p) || !floorLayout.isParticleInside(p)) {
