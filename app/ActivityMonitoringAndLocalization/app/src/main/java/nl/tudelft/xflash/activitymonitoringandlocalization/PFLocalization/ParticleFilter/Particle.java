@@ -11,7 +11,7 @@ public class Particle {
     private Location prevLoc, currLoc;
     private float strideLength;
     private float angleOffset;
-    private final float MAX_STRIDE = 1.0f;
+    private final float MAX_STRIDE = 0.75f;
     private final float MIN_STRIDE = 0.5f;
     private final float SIGMA_ANGLE_RAD = 0.01f;
     private Random rand = new Random();
