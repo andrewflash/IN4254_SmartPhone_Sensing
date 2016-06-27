@@ -161,7 +161,7 @@ public class ParticleFilter {
         VisitedPath visitedPath = VisitedPath.getInstance();
 
         for(Particle p : particles) {
-            mov = distanceModelZee.getDistance(alpha,stepCount,p.getStrideLength());
+            mov = distanceModelZee.getDistanceBest(alpha,stepCount,p.getStrideLength());
             p.updateLocation(mov[0], mov[1]);
             // Check particle collision with walls
             if(floorLayout.detectCollision(p) || !floorLayout.isParticleInside(p)) {
@@ -210,6 +210,7 @@ public class ParticleFilter {
         try {
             for (WifiData wifi : wifiData) {
                 float distance = 0;
+                float totalDistance = 0;
                 String jsonWifi = wifi.get_ssid();
                 JSONArray jsonWifiArray = new JSONArray(jsonWifi);
                 for (int i=0; i<jsonWifiArray.length(); i++){
@@ -218,16 +219,17 @@ public class ParticleFilter {
                     int level = jsonWifiData.getInt("level");
                     for(int j=0; j<curBssidList.size();j++) {
                         if(curBssidList.get(j).equals(bssid)){
-                            distance += (Math.abs(WifiData.normalizeRssi(level)
+                            float diff = (Math.abs(WifiData.normalizeRssi(level)
                                     - WifiData.normalizeRssi(curLevelList.get(j))));
+                            distance += diff;
                         } else {    // wifi not found in database
                             distance += 1;
                         }
+                        totalDistance += 1;
                     }
                 }
-                rssiDistances.add((double)distance);
+                rssiDistances.add((double)distance/totalDistance);
             }
-
             Log.d(this.getClass().getSimpleName(), rssiDistances.toString());
         } catch (JSONException e) {
             Log.e(this.getClass().getSimpleName(), "JSON Wifi error: " + e.getMessage());
@@ -235,6 +237,10 @@ public class ParticleFilter {
 
         // Find best RSSI point
         int bestRssiIndex = ArrayOperations.indexFirstMinimumFrom(0, rssiDistances);
+        if(rssiDistances.get(bestRssiIndex) > 0.98) {
+            return false;
+        }
+
         float x0 = (float)wifiData.get(bestRssiIndex).getX();
         float y0 = (float)wifiData.get(bestRssiIndex).getY();
 

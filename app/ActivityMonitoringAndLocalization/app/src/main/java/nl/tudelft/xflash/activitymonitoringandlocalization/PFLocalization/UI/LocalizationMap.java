@@ -21,6 +21,7 @@ import android.view.View;
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.Location;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.ParticleFilter.Particle;
 
 /**
@@ -32,6 +33,7 @@ public class LocalizationMap extends View {
     private CopyOnWriteArrayList<Particle> particles;
     private ArrayList<RectF> cellRectList;
     private ArrayList<String> cellNames;
+    private ArrayList<Location> wifiScanLoc;
     private Particle convParticle = null;
 
     private final float size = 0.98f;       // Add padding 0.02
@@ -42,7 +44,7 @@ public class LocalizationMap extends View {
     private VisitedPath visitedPath;
 
     private Matrix scaleMatrix;
-    private Paint particlePaint, wallPaint, convPaint, cellPaint, cellTextPaint;
+    private Paint particlePaint, wallPaint, convPaint, cellPaint, cellTextPaint, wifiScanPaint;
 
     // Pan and zoom
     private ScaleGestureDetector mScaleDetector;
@@ -73,6 +75,7 @@ public class LocalizationMap extends View {
         this.visitedPath = VisitedPath.getInstance();
         this.cellRectList = cellRectList;
         this.cellNames = cellNames;
+        this.wifiScanLoc = new ArrayList<>();
 
         // Create wall, initialize scaling matrix
         scaleMatrix = new Matrix();
@@ -118,8 +121,13 @@ public class LocalizationMap extends View {
         convPaint = new Paint();
         convPaint.setStyle(Paint.Style.STROKE);
         convPaint.setColor(Color.BLUE);
-        convPaint.setStrokeWidth(20);
+        convPaint.setStrokeWidth(15);
         convPaint.setStrokeCap(Paint.Cap.ROUND);
+
+        wifiScanPaint = new Paint();
+        wifiScanPaint.setStyle(Paint.Style.STROKE);
+        wifiScanPaint.setColor(Color.BLACK);
+        wifiScanPaint.setStrokeWidth(10);
 
         // Pan and zoom
         mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
@@ -144,6 +152,21 @@ public class LocalizationMap extends View {
     // Set particles (draw)
     public void setParticles(ArrayList<Particle> newParticles) {
         particles = new CopyOnWriteArrayList<Particle>(newParticles);
+    }
+
+    // Set Wifi Scan loc
+    public void setWifiScanLoc(ArrayList<Location> locs){
+        wifiScanLoc = locs;
+    }
+
+    // Set Wifi Scan loc
+    public void addWifiScanLoc(Location loc){
+        wifiScanLoc.add(loc);
+    }
+
+    // Clear Wifi Scan loc
+    public void clearWifiScanLoc(){
+        wifiScanLoc.clear();
     }
 
     // Set converged particle location
@@ -174,6 +197,12 @@ public class LocalizationMap extends View {
                     cellTextPaint);
         }
 
+        // Draw Wifi scan points
+        for(Location w : this.wifiScanLoc){
+            canvas.drawPoint(w.getX() * scale + offsetX,
+                    w.getY() * scale + offsetY, wifiScanPaint);
+        }
+
         // Draw converged particle
         if (convParticle != null) {
             canvas.drawPoint(convParticle.getCurrentLocation().getX() * scale + offsetX,
@@ -186,6 +215,7 @@ public class LocalizationMap extends View {
                         offsetX, p.getCurrentLocation().getY() * scale + offsetY, particlePaint);
             }
         }
+
 
         canvas.restore();
     }

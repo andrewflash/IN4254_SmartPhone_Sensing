@@ -10,7 +10,7 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorL
 public class Particle {
     private Location prevLoc, currLoc;
     private float strideLength;
-    private final float MAX_STRIDE = 0.75f;
+    private final float MAX_STRIDE = 0.9f;
     private final float MIN_STRIDE = 0.5f;
     private final float SIGMA_ANGLE_RAD = 0.01f;
     private Random rand = new Random();

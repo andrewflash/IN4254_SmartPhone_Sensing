@@ -42,6 +42,7 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.ActivityMonitor.Type;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Database.WifiDBHandler;
 import nl.tudelft.xflash.activitymonitoringandlocalization.Database.WifiData;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
+import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.Location;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.LocalizationMonitor;
 //import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.RunUpdate;
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.RunUpdateActivity;
@@ -178,6 +179,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         // Monitoring (monitor activity and localization
         activityMonitoring = new ActivityMonitoring(getApplicationContext());
         localizationMonitor = new LocalizationMonitor(getApplicationContext(), floorLayout, N_PARTICLES);
+        localizationMonitor.reset();
 
         // Get activity type
         activityType = ActivityType.getInstance();
@@ -253,7 +255,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     @Override
     public void update(int SensorType) {
 
-        if(SensorType == Sensor.TYPE_LINEAR_ACCELERATION && (initInitialBeliefPA || initInitialBeliefBayes) ) {
+        if(SensorType == Sensor.TYPE_LINEAR_ACCELERATION && (initInitialBeliefPA || initInitialBeliefBayes || isParticleConverged) ) {
             // Collect accelero data as large as WINDOW SIZE
             this.accelX.add(LinearAccelero.getLinearAcceleration()[0]);
             this.accelY.add(LinearAccelero.getLinearAcceleration()[1]);
@@ -361,6 +363,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
         localizationView = new LocalizationMap(this, floorLayout.getPath(),
                 floorLayout.getCellNames(),floorLayout.getCellRectList(),
                 localizationMonitor.getParticles(), screenSize.x, screenSize.y);
+        localizationView.reset();
         localizationView.clearParticles();
 
         // Initialize compass view
@@ -435,6 +438,13 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             btnInitialBeliefPA.setEnabled(true);
             btnSenseBayes.setEnabled(false);
             btnInitialBeliefBayes.setEnabled(false);
+        } else {
+            List<WifiData> wifiDataLoc = wifiDb.getAllWifiData();
+            ArrayList<Location> wifiLocList = new ArrayList<>();
+            for(WifiData w : wifiDataLoc){
+                wifiLocList.add(new Location((float)w.getX(),(float)w.getY()));
+            }
+            localizationView.setWifiScanLoc(wifiLocList);
         }
 
         if(!isParticleConverged){
@@ -508,6 +518,8 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 loading.setTitle("Loading");
                 loading.setMessage("Analyzing current location from Wifi data");
                 loading.show();
+                localizationMonitor.reset();
+                localizationView.reset();
             }
         });
 
@@ -522,6 +534,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 loading.dismiss();
                 Toast.makeText(getApplicationContext(), (CharSequence)"Successfully clean up wifi data", Toast.LENGTH_SHORT).show();
                 btnSenseBayes.setEnabled(false);
+                localizationView.clearWifiScanLoc();
+                localizationMonitor.reset();
+                localizationView.reset();
                 if(!isParticleConverged)
                     btnInitialBeliefBayes.setEnabled(false);
             }
@@ -570,7 +585,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     public void run() {
                         // Create runnable localization
                         RunUpdateLocalization runUpdateLocalization;
-                        if (initInitialBeliefPA || initInitialBeliefBayes) {
+                        if (initInitialBeliefPA || initInitialBeliefBayes || isParticleConverged) {
                             if (activityMonitoring.getActivity() == Type.WALKING) {
                                 runUpdateLocalization = new RunUpdateLocalization(
                                         curAngle, localizationMonitor, localizationView, compassGUI, stepCount,
@@ -609,6 +624,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     @Override
                     public void run() {
                         wifiManager.startScan();
+                        localizationView.addWifiScanLoc(new Location(
+                                localizationMonitor.getParticles().get(0).getCurrentLocation().getX(),
+                                localizationMonitor.getParticles().get(0).getCurrentLocation().getY()));
                         wifi.getObservable().mySetChanged();
                     }
                 });
