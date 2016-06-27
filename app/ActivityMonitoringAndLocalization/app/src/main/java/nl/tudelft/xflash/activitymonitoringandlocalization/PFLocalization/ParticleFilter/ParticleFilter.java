@@ -86,7 +86,7 @@ public class ParticleFilter {
 
         // Check particle collision with walls
         for (Particle p : dupParticles){
-            mov = distanceModelZee.getDistance(alpha,stepCount,p.getAngleOffset(),p.getStrideLength());
+            mov = distanceModelZee.getDistance(alpha,stepCount,p.getStrideLength());
             p.updateLocation(mov[0], mov[1]);
             if(floorLayout.detectCollision(p)){
                 collisionParticles.add(p);
@@ -161,7 +161,7 @@ public class ParticleFilter {
         VisitedPath visitedPath = VisitedPath.getInstance();
 
         for(Particle p : particles) {
-            mov = distanceModelZee.getDistance(alpha,stepCount,0,p.getStrideLength());
+            mov = distanceModelZee.getDistance(alpha,stepCount,p.getStrideLength());
             p.updateLocation(mov[0], mov[1]);
             // Check particle collision with walls
             if(floorLayout.detectCollision(p) || !floorLayout.isParticleInside(p)) {

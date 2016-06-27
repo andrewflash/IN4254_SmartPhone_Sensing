@@ -67,7 +67,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private LinearLayout compassLayout;
 
     // Particles
-    private static final int N_PARTICLES = 3500;
+    private static final int N_PARTICLES = 1500;
 
     // Sensors
     private SensorManager sensorManager;
@@ -112,7 +112,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
 
     // Timers in milliseconds
     private static final int PERIOD_LOCALIZATION = 150;
-    private static final int PERIOD_UPDATE_INFO = 50;
+    private static final int PERIOD_UPDATE_INFO = 200;
     private static final int PERIOD_WIFI = 5000;
 
     // Thread Queue

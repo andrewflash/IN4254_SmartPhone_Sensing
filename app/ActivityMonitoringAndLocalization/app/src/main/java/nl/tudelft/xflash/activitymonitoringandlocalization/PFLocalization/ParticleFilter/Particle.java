@@ -10,7 +10,6 @@ import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorL
 public class Particle {
     private Location prevLoc, currLoc;
     private float strideLength;
-    private float angleOffset;
     private final float MAX_STRIDE = 0.75f;
     private final float MIN_STRIDE = 0.5f;
     private final float SIGMA_ANGLE_RAD = 0.01f;
@@ -20,21 +19,18 @@ public class Particle {
         this.currLoc = new Location(x,y);
         this.prevLoc = new Location(x,y);
         this.strideLength = (float)(Math.random() * (MAX_STRIDE - MIN_STRIDE) + MIN_STRIDE);
-        this.angleOffset = (float)(rand.nextGaussian() * SIGMA_ANGLE_RAD);
     }
 
     public Particle(Location newLoc){
         this.currLoc = new Location(newLoc);
         this.prevLoc= new Location(newLoc);
         this.strideLength = (float)(Math.random() * (MAX_STRIDE - MIN_STRIDE) + MIN_STRIDE);
-        this.angleOffset = (float)(rand.nextGaussian() * SIGMA_ANGLE_RAD);
     }
 
     public Particle(Location currLoc, Location prevLoc){
         this.currLoc = new Location(currLoc);
         this.prevLoc = new Location(prevLoc);
         this.strideLength = (float)(Math.random() * (MAX_STRIDE - MIN_STRIDE) + MIN_STRIDE);
-        this.angleOffset = (float)(rand.nextGaussian() * SIGMA_ANGLE_RAD);
     }
 
     public void updateLocation(float dx, float dy){
@@ -61,10 +57,6 @@ public class Particle {
 
     public float getStrideLength(){
         return this.strideLength;
-    }
-
-    public float getAngleOffset(){
-        return this.angleOffset;
     }
 
     public void setPreviousLocation(Location newLocation){
