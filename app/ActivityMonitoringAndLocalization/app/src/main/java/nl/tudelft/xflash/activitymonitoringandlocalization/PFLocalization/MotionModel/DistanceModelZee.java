@@ -1,7 +1,9 @@
 package nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.MotionModel;
 
 import android.app.Activity;
+import android.util.Log;
 
+import java.io.Console;
 import java.util.Random;
 
 import nl.tudelft.xflash.activitymonitoringandlocalization.PFLocalization.FloorLayout.FloorLayout;
@@ -29,9 +31,21 @@ public class DistanceModelZee {
 
         // Add gaussian noise to the angle
         float alphaNoise = alpha + (float)Math.toRadians(floorLayout.getNorthAngle())
-                + alphaMean + (float) rand.nextGaussian()*alphaDeviation +
-                + (float)Math.toRadians(90) +
-                angleOffset;
+                + alphaMean + (float)Math.toRadians(90) + angleOffset;
+
+        Log.d(this.getClass().getSimpleName(), "alphaNoise: " + alphaNoise);
+
+        if ((5.5f < alphaNoise) && (alphaNoise < 7.0f)) {
+            alphaNoise = 6.28f; // 360 deg, ok
+        } else if ((10.15f < alphaNoise) && (alphaNoise < 11.8f)) {
+            alphaNoise = 10.99f; // 630 deg, ok
+        } else if ((7.0f < alphaNoise) && (alphaNoise < 8.63f)) {
+            alphaNoise = 7.85f; // 450 deg, ok
+        } else if ((8.63f < alphaNoise) && (alphaNoise < 10.15f)) {
+            alphaNoise = 9.42f; // 540 deg
+        }
+
+        alphaNoise = alphaNoise + (float) rand.nextGaussian()*alphaDeviation;
 
         float randerr = (float) (Math.random() * (0.1 + 0.1) -0.1)*strideLength;
 
