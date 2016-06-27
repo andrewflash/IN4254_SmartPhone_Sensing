@@ -30,7 +30,7 @@ public class DistanceModelZee {
 
         // Add gaussian noise to the angle
         float alphaNoise = alpha + (float)Math.toRadians(floorLayout.getNorthAngle())
-                + alphaMean;
+                + alphaMean + (float)Math.toRadians(90);
 
         Log.d(this.getClass().getSimpleName(), "alphaNoise: " + alphaNoise);
 
@@ -46,7 +46,7 @@ public class DistanceModelZee {
 
         alphaNoise = alphaNoise + (float) rand.nextGaussian()*alphaDeviation;
 
-        float randerr = (float) (Math.random() * (0.2) - 0.1)*strideLength;
+        float randerr = (float) (Math.random() * (0.2) -0.1)*strideLength;
 
         // Caluclate the dx/dy based on the window size and alpha
         float dx = stepCount*(strideLength+randerr) * (float) Math.cos(alphaNoise);
