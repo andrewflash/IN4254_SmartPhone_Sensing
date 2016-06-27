@@ -26,8 +26,8 @@ public class DistanceModelZee {
     public float[] getDistance(float alpha, int stepCount, float angleOffset, float strideLength) {
         //Gaussian distribution of mean alpha and stdev alphaDeviation
         //float alphaDeviation = 0.8859f;   // in radians
-        float alphaDeviation = 0.1f;   // in radians
-        float alphaMean = -0.1f;    // in radians
+        float alphaDeviation = 1f;   // in degree
+        float alphaMeanOffset = -15f;    // in degree
 
         // Add gaussian noise to the angle
         float alphaNoise = alpha + (float)Math.toRadians(floorLayout.getNorthAngle())
@@ -52,7 +52,7 @@ public class DistanceModelZee {
         // Caluclate the dx/dy based on the window size and alpha
         float dx = stepCount*(strideLength+randerr) * (float) Math.cos(alphaNoise);
         float dy = stepCount*(strideLength+randerr) * (float) Math.sin(alphaNoise);
-        float[] out = {dx,dy};
+        float[] out = {dx,-dy};
 
         return out;
     }

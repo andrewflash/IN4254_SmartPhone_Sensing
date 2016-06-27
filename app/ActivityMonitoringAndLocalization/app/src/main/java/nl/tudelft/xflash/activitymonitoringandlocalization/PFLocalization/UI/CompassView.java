@@ -43,7 +43,8 @@ public class CompassView {
     }
 
     public void setAngle(float angle){
-        compassDir.set( compassPlac.x + (int)(compassRadius*Math.cos(angle + Math.toRadians(FloorLayout.getNorthAngle()))),
-                compassPlac.y - (int)(compassRadius*Math.sin(angle + Math.toRadians(FloorLayout.getNorthAngle()))));
+        // considering placement
+        compassDir.set( compassPlac.x + (int)(compassRadius*Math.cos(Math.toRadians(angle+180))),
+                compassPlac.y + (int)(compassRadius*Math.sin(Math.toRadians(angle))));
     }
 }
