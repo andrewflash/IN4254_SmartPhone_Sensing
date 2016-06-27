@@ -30,9 +30,7 @@ public class DistanceModelZee {
 
         // Add gaussian noise to the angle
         float alphaNoise = alpha + (float)Math.toRadians(floorLayout.getNorthAngle())
-                + alphaMean + (float)Math.toRadians(90);
-
-        Log.d(this.getClass().getSimpleName(), "alphaNoise: " + alphaNoise);
+                + alphaMean;
 
         if ((5.5f < alphaNoise) && (alphaNoise < 7.0f)) {
             alphaNoise = 6.28f; // 360 deg, ok

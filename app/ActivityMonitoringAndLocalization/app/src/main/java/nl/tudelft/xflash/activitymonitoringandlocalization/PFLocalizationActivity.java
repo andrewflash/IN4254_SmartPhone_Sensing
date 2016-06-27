@@ -317,10 +317,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                             localizationMonitor.getParticles().get(0).getCurrentLocation().getY(),
                             localizationMonitor.getCellLocation(), jsonWifiList);
 
-                    localizationView.addWifiScanLoc(new Location(
-                            localizationMonitor.getParticles().get(0).getCurrentLocation().getX(),
-                            localizationMonitor.getParticles().get(0).getCurrentLocation().getY()));
-
                     AddWifiData addWifiData = new AddWifiData(wifiData);
                     addWifiData.execute();
 
@@ -520,6 +516,8 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 loading.setTitle("Loading");
                 loading.setMessage("Analyzing current location from Wifi data");
                 loading.show();
+                localizationMonitor.reset();
+                localizationView.reset();
             }
         });
 
@@ -535,6 +533,8 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 Toast.makeText(getApplicationContext(), (CharSequence)"Successfully clean up wifi data", Toast.LENGTH_SHORT).show();
                 btnSenseBayes.setEnabled(false);
                 localizationView.clearWifiScanLoc();
+                localizationMonitor.reset();
+                localizationView.reset();
                 if(!isParticleConverged)
                     btnInitialBeliefBayes.setEnabled(false);
             }
@@ -622,6 +622,9 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     @Override
                     public void run() {
                         wifiManager.startScan();
+                        localizationView.addWifiScanLoc(new Location(
+                                localizationMonitor.getParticles().get(0).getCurrentLocation().getX(),
+                                localizationMonitor.getParticles().get(0).getCurrentLocation().getY()));
                         wifi.getObservable().mySetChanged();
                     }
                 });
