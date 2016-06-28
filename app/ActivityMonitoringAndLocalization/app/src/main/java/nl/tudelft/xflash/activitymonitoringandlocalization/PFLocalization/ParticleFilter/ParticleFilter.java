@@ -8,7 +8,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import nl.tudelft.xflash.activitymonitoringandlocalization.Database.WifiData;
@@ -195,12 +198,10 @@ public class ParticleFilter {
             return false;
         }
 
-        // Current Wifi Data
-        ArrayList<String> curBssidList = new ArrayList<>();
-        ArrayList<Integer> curLevelList = new ArrayList<>();
+        // Current Wifi Data, convert to hash table
+        Map<String,Integer> curWifiResult = new Hashtable<String,Integer>();
         for (ScanResult s : curWifi){
-            curBssidList.add(s.BSSID);
-            curLevelList.add(s.level);
+            curWifiResult.put(s.BSSID, s.level);
         }
 
         // RSSI Wifi distances
@@ -213,22 +214,38 @@ public class ParticleFilter {
                 float totalDistance = 0;
                 String jsonWifi = wifi.get_ssid();
                 JSONArray jsonWifiArray = new JSONArray(jsonWifi);
-                for (int i=0; i<jsonWifiArray.length(); i++){
+
+                // Convert json data to hash table
+                Map<String,Integer> dataWifiResult = new Hashtable<String,Integer>();
+                for (int i = 0; i < jsonWifiArray.length(); i++) {
                     JSONObject jsonWifiData = jsonWifiArray.getJSONObject(i);
                     String bssid = jsonWifiData.getString("bssid");
                     int level = jsonWifiData.getInt("level");
-                    for(int j=0; j<curBssidList.size();j++) {
-                        if(curBssidList.get(j).equals(bssid)){
-                            float diff = (Math.abs(WifiData.normalizeRssi(level)
-                                    - WifiData.normalizeRssi(curLevelList.get(j))));
-                            distance += diff;
-                        } else {    // wifi not found in database
-                            distance += 1;
-                        }
-                        totalDistance += 1;
+                    dataWifiResult.put(bssid,level);
+                }
+
+                // Compare current scan with wifi data
+                for (Map.Entry<String,Integer> c : curWifiResult.entrySet()){
+                    // if a current scan BSSID not found in database, use cur scan level as distance
+                    if(!dataWifiResult.containsKey(c.getKey())){
+                        float diff = c.getValue();
+                        distance += diff*diff;
+                    } else {    // if found, then take the difference
+                        float diff = c.getValue() - dataWifiResult.get(c.getKey());
+                        distance += diff*diff;
                     }
                 }
-                rssiDistances.add((double)distance/totalDistance);
+
+                // Compare wifi data with current scan
+                for (Map.Entry<String,Integer> d : dataWifiResult.entrySet()){
+                    // if a wifi BSSID  not found in current scan, use database data level as distance
+                    if(curWifiResult.containsKey(d.getKey())){
+                        float diff = d.getValue();
+                        distance += diff*diff;
+                    } // no need to add distance if it's contain the key, because we already done that before
+                }
+
+                rssiDistances.add(Math.sqrt(distance));
             }
             Log.d(this.getClass().getSimpleName(), rssiDistances.toString());
         } catch (JSONException e) {
@@ -237,9 +254,9 @@ public class ParticleFilter {
 
         // Find best RSSI point
         int bestRssiIndex = ArrayOperations.indexFirstMinimumFrom(0, rssiDistances);
-        if(rssiDistances.get(bestRssiIndex) > 0.98) {
-            return false;
-        }
+//        if(rssiDistances.get(bestRssiIndex) > 0.98) {
+//            return false;
+//        }
 
         float x0 = (float)wifiData.get(bestRssiIndex).getX();
         float y0 = (float)wifiData.get(bestRssiIndex).getY();

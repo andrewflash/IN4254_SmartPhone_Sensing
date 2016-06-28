@@ -12,7 +12,7 @@ public class Particle {
     private float strideLength;
     private final float MAX_STRIDE = 0.9f;
     private final float MIN_STRIDE = 0.5f;
-    
+
     public Particle(float x, float y){
         this.currLoc = new Location(x,y);
         this.prevLoc = new Location(x,y);

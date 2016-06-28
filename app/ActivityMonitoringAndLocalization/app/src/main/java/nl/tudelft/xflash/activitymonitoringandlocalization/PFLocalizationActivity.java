@@ -68,7 +68,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private LinearLayout compassLayout;
 
     // Particles
-    private static final int N_PARTICLES = 1500;
+    private static final int N_PARTICLES = 1400;
 
     // Sensors
     private SensorManager sensorManager;
@@ -319,6 +319,10 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                             localizationMonitor.getParticles().get(0).getCurrentLocation().getY(),
                             localizationMonitor.getCellLocation(), jsonWifiList);
 
+                    localizationView.addWifiScanLoc(new Location(
+                            localizationMonitor.getParticles().get(0).getCurrentLocation().getX(),
+                            localizationMonitor.getParticles().get(0).getCurrentLocation().getY()));
+
                     AddWifiData addWifiData = new AddWifiData(wifiData);
                     addWifiData.execute();
 
@@ -538,8 +542,10 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                 localizationView.clearWifiScanLoc();
                 localizationMonitor.reset();
                 localizationView.reset();
+                localizationView.invalidate();
                 if(!isParticleConverged)
                     btnInitialBeliefBayes.setEnabled(false);
+                btnInitialBeliefPA.setEnabled(true);
             }
         });
     }
@@ -625,9 +631,6 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
                     @Override
                     public void run() {
                         wifiManager.startScan();
-                        localizationView.addWifiScanLoc(new Location(
-                                localizationMonitor.getParticles().get(0).getCurrentLocation().getX(),
-                                localizationMonitor.getParticles().get(0).getCurrentLocation().getY()));
                         wifi.getObservable().mySetChanged();
                     }
                 });
