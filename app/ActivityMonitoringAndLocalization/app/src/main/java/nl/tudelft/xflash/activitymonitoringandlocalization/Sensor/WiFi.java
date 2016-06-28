@@ -22,7 +22,7 @@ public class WiFi extends BroadcastReceiver {
 
     private WifiObservable o;
     private Comparator<ScanResult> comparator;
-    private static final int MAX_AP = 10;
+    private static final int MAX_AP = 30;
 
     public WiFi(WifiManager wifi) {
         super();
