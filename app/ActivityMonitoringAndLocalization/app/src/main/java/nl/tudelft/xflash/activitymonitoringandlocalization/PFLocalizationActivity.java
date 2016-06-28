@@ -263,11 +263,12 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
             this.numSample = this.numSample + 1;
 
             if(activityMonitoring.getActivity() == Type.WALKING) {
-                this.stepSamples = this.stepSamples + 1;
                 if (this.stepSamples >= activityMonitoring.getTOpt() / 2) {
-                    this.stepCount = this.stepCount + 1;
                     this.stepSamples = 0;
+                    this.stepCount = this.stepCount + 1;
                     this.curAngle = angle;
+                } else {
+                    this.stepSamples = this.stepSamples + 1;
                 }
             }
 
