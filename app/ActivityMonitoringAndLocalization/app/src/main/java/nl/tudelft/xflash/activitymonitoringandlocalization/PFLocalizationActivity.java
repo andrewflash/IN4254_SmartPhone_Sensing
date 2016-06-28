@@ -68,7 +68,7 @@ public class PFLocalizationActivity extends AppCompatActivity implements Observe
     private LinearLayout compassLayout;
 
     // Particles
-    private static final int N_PARTICLES = 1500;
+    private static final int N_PARTICLES = 1400;
 
     // Sensors
     private SensorManager sensorManager;
