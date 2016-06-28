@@ -42,6 +42,8 @@ public class Nasc {
         int m = arrayListX.size()-t-t;
 
         // get mean from m to m+t-1
+//        arrAcceleroData = magnitudeAcceleroList(this.arrayListX.subList(0, t),
+//                this.arrayListY.subList(0, t), this.arrayListZ.subList(0, t));
         arrAcceleroData = AcceleroListToDouble(this.arrayListX.subList(m,m+t-1));
         Statistics stats = new Statistics(arrAcceleroData);
         mu1 = stats.getMean();
@@ -50,6 +52,8 @@ public class Nasc {
         stdev1 = stats.getStdDev();
 
         // get mean from m+t to m+t+t-1
+//        arrAcceleroData = magnitudeAcceleroList(this.arrayListX.subList(t, t+t),
+//                this.arrayListY.subList(t, t+t), this.arrayListZ.subList(t, t+t));
         arrAcceleroData = AcceleroListToDouble(this.arrayListX.subList(m+t,m+t+t-1));
         stats = new Statistics(arrAcceleroData);
         mu2 = stats.getMean();
@@ -60,8 +64,10 @@ public class Nasc {
 //        Log.d(this.getClass().getSimpleName(), "for loop");
         for (k = m; k < m+t; k++) {
             // get accelerometer m+k
+//            a = magnitudeAcceleroData(this.arrayListX.get(k), this.arrayListY.get(k), this.arrayListZ.get(k));
             a = this.arrayListX.get(k);
             // get accelerometer m+k+t
+//            b = magnitudeAcceleroData(this.arrayListX.get(k+t), this.arrayListY.get(k+t), this.arrayListZ.get(k+t));
             b = this.arrayListX.get(k+t);
             upper = upper + (a-mu1)*(b-mu2);
         }
@@ -100,15 +106,15 @@ public class Nasc {
         Statistics stats = new Statistics(arrNAC);
         this.maxNac = stats.getMax();
 
-        if (tOptimal<60) {
-            tOptimal = 60;
+        if (tOptimal<50) {
+            tOptimal = 50;
         } else if (tOptimal>90) {
             tOptimal = 90;
         }
 
         this.tOpt = tOptimal;
-        this.tMin = tOptimal-5;
-        this.tMax = tOptimal+7;
+        this.tMin = tOptimal-10;
+        this.tMax = tOptimal+10;
     }
 
     public double getMaxNac() {
@@ -127,6 +133,13 @@ public class Nasc {
         return this.tOpt;
     }
 
+    private double magnitudeAcceleroData(float acceleroDataX, float acceleroDataY, float acceleroDataZ) {
+        double normAcceleroData;
+        normAcceleroData = Math.sqrt(Math.pow(acceleroDataX ,2) + Math.pow(acceleroDataY, 2)
+                + Math.pow(acceleroDataZ,2));
+        return normAcceleroData;
+    }
+
     private double[] magnitudeAcceleroList(List<Float> acceleroDataX,
                                            List<Float> acceleroDataY,
                                            List<Float> acceleroDataZ) {
@@ -142,6 +155,21 @@ public class Nasc {
             arrNormAcceleroData[i] = Math.sqrt(powSum);
         }
         return arrNormAcceleroData;
+    }
+
+    public ArrayList<Float> magnitudeAcceleroArrayList(List<Float> acceleroDataX,
+                                                       List<Float> acceleroDataY,
+                                                       List<Float> acceleroDataZ) {
+
+        ArrayList<Float> normAccel = new ArrayList<>();
+
+        for(int i=0;i<acceleroDataX.size();i++){
+            normAccel.add((float)Math.sqrt(Math.pow(acceleroDataX.get(i),2) +
+                    Math.pow(acceleroDataY.get(i),2) +
+                    Math.pow(acceleroDataZ.get(i),2)));
+        }
+
+        return normAccel;
     }
 
     public double[] AcceleroListToDouble(List<Float> acceleroData){

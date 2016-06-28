@@ -15,7 +15,7 @@ public class ActivityMonitoring {
     // This instance keeps track of the activities performed
     ActivityType activityList;
     private Nasc nasc;
-    private int tmin = 50;
+    private int tmin = 40;
     private int tmax = 100;
     private int tOpt = 0;
     private boolean finished = true;
