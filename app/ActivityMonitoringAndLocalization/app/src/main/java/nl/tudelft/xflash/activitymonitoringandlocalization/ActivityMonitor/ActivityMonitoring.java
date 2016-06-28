@@ -15,7 +15,7 @@ public class ActivityMonitoring {
     // This instance keeps track of the activities performed
     ActivityType activityList;
     private Nasc nasc;
-    private int tmin = 40;
+    private int tmin = 50;
     private int tmax = 100;
     private int tOpt = 0;
     private boolean finished = true;
@@ -40,7 +40,7 @@ public class ActivityMonitoring {
         // calculate maxNAC
         maxNAC = nasc.getMaxNac();
 
-        if(stdevAcc < 0.2) {
+        if(stdevAcc < 0.35) {
             state = Type.IDLE;
         } else if(maxNAC > 0.7) {
             state = Type.WALKING;
